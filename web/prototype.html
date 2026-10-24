@@ -1,0 +1,1934 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Pulse — UI Theme Variations Prototype</title>
+  
+  <!-- Typography per ADR-DS-001: Inter (UI) and JetBrains Mono (Data) -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
+
+  <style>
+    /* ==========================================================================
+       PULSE DESIGN SYSTEM — CORE TOKENS & RESET (ADR-DS-001)
+       ========================================================================== */
+    *, *::before, *::after {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    :root {
+      --font-ui: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+      --font-data: 'JetBrains Mono', monospace;
+      
+      /* Motion Tokens */
+      --ease-pulse: cubic-bezier(0.16, 1, 0.3, 1);
+      --transition-fast: 150ms ease-out;
+      --transition-standard: 300ms cubic-bezier(0.16, 1, 0.3, 1);
+      --transition-crash: 600ms cubic-bezier(0.34, 1.56, 0.64, 1);
+    }
+
+    body {
+      font-family: var(--font-ui);
+      font-size: 15px;
+      line-height: 1.5;
+      -webkit-font-smoothing: antialiased;
+      -moz-osx-font-smoothing: grayscale;
+      overflow-x: hidden;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+    }
+
+    /* --------------------------------------------------------------------------
+       THEME HYBRID (WINNER): SURGICAL HORIZON (A's Layout + B's Luminous Trajectory)
+       -------------------------------------------------------------------------- */
+    [data-theme="H"] {
+      --bg-canvas: #0a0b10;
+      --bg-surface: #12141d;
+      --bg-surface-elevated: #1a1d28;
+      --bg-surface-translucent: rgba(18, 20, 29, 0.85);
+      
+      --border-subtle: rgba(255, 255, 255, 0.08);
+      --border-strong: rgba(255, 255, 255, 0.16);
+      --border-glow: rgba(120, 105, 245, 0.45);
+
+      --text-hero: #ffffff;
+      --text-primary: #ededed;
+      --text-secondary: #9499ad;
+      --text-tertiary: #5d6379;
+
+      /* ADR-DS-001 Palette with Phosphorescent Luminous Punch */
+      --color-primary: hsl(255, 62%, 62%); /* Luminous Deep Indigo */
+      --color-secondary: hsl(38, 92%, 52%); /* Luminous Amber */
+      --color-income: hsl(172, 65%, 46%);   /* Precision Teal */
+      --color-expense: hsl(350, 70%, 58%);  /* Warning Rose */
+      
+      --color-primary-soft: rgba(120, 105, 245, 0.18);
+      --color-secondary-soft: rgba(245, 166, 35, 0.18);
+      --color-income-soft: rgba(52, 190, 175, 0.14);
+      --color-expense-soft: rgba(225, 65, 88, 0.14);
+
+      --chart-grid: rgba(255, 255, 255, 0.04);
+      --chart-zero-line: rgba(255, 255, 255, 0.16);
+      --grain-opacity: 0.035;
+      --card-radius: 10px;
+      --badge-radius: 6px;
+    }
+
+    [data-theme="H"] .chart-panel {
+      background: radial-gradient(circle at 50% 0%, #151825 0%, #10121a 100%);
+      border: 1px solid rgba(120, 105, 245, 0.22);
+      box-shadow: 0 8px 32px -8px rgba(120, 105, 245, 0.18);
+    }
+
+    [data-theme="H"] .trajectory-a {
+      filter: drop-shadow(0 0 8px rgba(120, 105, 245, 0.45));
+    }
+
+    [data-theme="H"] .trajectory-b {
+      filter: drop-shadow(0 0 8px rgba(245, 166, 35, 0.45));
+    }
+
+    [data-theme="H"] .hero-score {
+      font-size: 52px;
+      letter-spacing: -0.04em;
+    }
+
+    /* --------------------------------------------------------------------------
+       THEME 1: SURGICAL OBSIDIAN (Variant A - Linear Inspired Dark Matte)
+       -------------------------------------------------------------------------- */
+    [data-theme="A"] {
+      --bg-canvas: #0b0c10;
+      --bg-surface: #13151c;
+      --bg-surface-elevated: #1a1d27;
+      --bg-surface-translucent: rgba(19, 21, 28, 0.85);
+      
+      --border-subtle: rgba(255, 255, 255, 0.07);
+      --border-strong: rgba(255, 255, 255, 0.14);
+      --border-glow: rgba(99, 87, 181, 0.35);
+
+      --text-hero: #ffffff;
+      --text-primary: #ededed;
+      --text-secondary: #9499ad;
+      --text-tertiary: #5d6379;
+
+      /* ADR-DS-001 Palette */
+      --color-primary: hsl(255, 45%, 58%); /* Deep Indigo Scenario A */
+      --color-secondary: hsl(38, 80%, 52%); /* Amber Scenario B */
+      --color-income: hsl(174, 55%, 45%);   /* Teal */
+      --color-expense: hsl(350, 60%, 55%);  /* Rose */
+      
+      --color-primary-soft: rgba(109, 97, 206, 0.15);
+      --color-secondary-soft: rgba(233, 154, 31, 0.15);
+      --color-income-soft: rgba(52, 177, 164, 0.12);
+      --color-expense-soft: rgba(209, 72, 93, 0.12);
+
+      --chart-grid: rgba(255, 255, 255, 0.04);
+      --chart-zero-line: rgba(255, 255, 255, 0.15);
+      --grain-opacity: 0.04;
+      --card-radius: 8px;
+      --badge-radius: 4px;
+    }
+
+    /* --------------------------------------------------------------------------
+       THEME 2: KINETIC HORIZON (Variant B - Robinhood Chart-Forward Phosphor)
+       -------------------------------------------------------------------------- */
+    [data-theme="B"] {
+      --bg-canvas: #050608;
+      --bg-surface: #0d1017;
+      --bg-surface-elevated: #161b26;
+      --bg-surface-translucent: rgba(13, 16, 23, 0.78);
+      
+      --border-subtle: rgba(255, 255, 255, 0.05);
+      --border-strong: rgba(255, 255, 255, 0.18);
+      --border-glow: rgba(120, 105, 245, 0.5);
+
+      --text-hero: #ffffff;
+      --text-primary: #f8fafc;
+      --text-secondary: #8b9bb4;
+      --text-tertiary: #4c5a6f;
+
+      /* High-Energy Phosphorescent Palette */
+      --color-primary: hsl(252, 75%, 65%);
+      --color-secondary: hsl(38, 95%, 54%);
+      --color-income: hsl(170, 75%, 48%);
+      --color-expense: hsl(350, 75%, 60%);
+
+      --color-primary-soft: rgba(138, 124, 255, 0.2);
+      --color-secondary-soft: rgba(245, 166, 35, 0.2);
+      --color-income-soft: rgba(30, 215, 180, 0.15);
+      --color-expense-soft: rgba(244, 63, 94, 0.15);
+
+      --chart-grid: rgba(255, 255, 255, 0.03);
+      --chart-zero-line: rgba(255, 255, 255, 0.12);
+      --grain-opacity: 0.02;
+      --card-radius: 14px;
+      --badge-radius: 20px;
+    }
+
+    /* --------------------------------------------------------------------------
+       THEME 3: TECHNICAL SLATE (Variant C - Swiss Monospace Light Studio)
+       -------------------------------------------------------------------------- */
+    [data-theme="C"] {
+      --bg-canvas: #f4f6fa;
+      --bg-surface: #ffffff;
+      --bg-surface-elevated: #ebf0f7;
+      --bg-surface-translucent: rgba(255, 255, 255, 0.88);
+      
+      --border-subtle: #e2e7f0;
+      --border-strong: #cbd5e1;
+      --border-glow: rgba(73, 60, 160, 0.25);
+
+      --text-hero: #0f172a;
+      --text-primary: #1e293b;
+      --text-secondary: #64748b;
+      --text-tertiary: #94a3b8;
+
+      /* Light Theme Contrast Adjusted per ADR-DS-001 (WCAG AA 4.5:1) */
+      --color-primary: hsl(255, 55%, 44%);
+      --color-secondary: hsl(36, 92%, 40%);
+      --color-income: hsl(174, 70%, 32%);
+      --color-expense: hsl(350, 68%, 46%);
+
+      --color-primary-soft: rgba(77, 59, 173, 0.1);
+      --color-secondary-soft: rgba(200, 120, 10, 0.12);
+      --color-income-soft: rgba(25, 140, 126, 0.1);
+      --color-expense-soft: rgba(200, 38, 64, 0.1);
+
+      --chart-grid: rgba(0, 0, 0, 0.05);
+      --chart-zero-line: rgba(0, 0, 0, 0.18);
+      --grain-opacity: 0.015;
+      --card-radius: 4px;
+      --badge-radius: 2px;
+    }
+
+    /* Noise Texture Overlay */
+    body::before {
+      content: "";
+      position: fixed;
+      inset: 0;
+      pointer-events: none;
+      z-index: 9998;
+      background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)' opacity='0.08'/%3E%3C/svg%3E");
+      opacity: var(--grain-opacity);
+    }
+
+    body {
+      background-color: var(--bg-canvas);
+      color: var(--text-primary);
+      transition: background-color var(--transition-standard), color var(--transition-standard);
+      padding-bottom: 96px; /* Space for floating switcher */
+    }
+
+    /* ==========================================================================
+       HEADER & NAVIGATION
+       ========================================================================== */
+    .pulse-header {
+      border-bottom: 1px solid var(--border-subtle);
+      background: var(--bg-surface-translucent);
+      backdrop-filter: blur(12px);
+      position: sticky;
+      top: 0;
+      z-index: 100;
+    }
+
+    .header-inner {
+      max-width: 1240px;
+      margin: 0 auto;
+      padding: 12px 24px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    .brand-mark {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      font-weight: 700;
+      font-size: 17px;
+      letter-spacing: -0.02em;
+      color: var(--text-hero);
+    }
+
+    .brand-icon {
+      width: 24px;
+      height: 24px;
+      border-radius: 6px;
+      background: linear-gradient(135deg, var(--color-primary), var(--color-secondary));
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      box-shadow: 0 0 12px var(--border-glow);
+    }
+
+    .brand-icon svg {
+      width: 14px;
+      height: 14px;
+      stroke: #fff;
+      stroke-width: 2.2;
+    }
+
+    .badge-tag {
+      font-size: 11px;
+      font-family: var(--font-data);
+      padding: 2px 7px;
+      border-radius: var(--badge-radius);
+      background: var(--color-primary-soft);
+      color: var(--color-primary);
+      font-weight: 600;
+      letter-spacing: 0.04em;
+    }
+
+    .header-actions {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .button {
+      display: inline-flex;
+      align-items: center;
+      gap: 7px;
+      font-family: var(--font-ui);
+      font-size: 13px;
+      font-weight: 500;
+      padding: 7px 14px;
+      border-radius: var(--badge-radius);
+      cursor: pointer;
+      border: 1px solid transparent;
+      transition: all var(--transition-fast);
+      user-select: none;
+    }
+
+    .button:active {
+      transform: scale(0.97);
+    }
+
+    .button-ghost {
+      background: transparent;
+      color: var(--text-secondary);
+      border-color: var(--border-subtle);
+    }
+
+    .button-ghost:hover {
+      background: var(--bg-surface-elevated);
+      color: var(--text-primary);
+      border-color: var(--border-strong);
+    }
+
+    .button-primary {
+      background: var(--color-primary);
+      color: #ffffff;
+      box-shadow: 0 2px 8px var(--border-glow);
+    }
+
+    .button-primary:hover {
+      filter: brightness(1.1);
+    }
+
+    /* Ephemeral Export Pill */
+    .button-export {
+      background: var(--bg-surface);
+      border: 1px solid var(--border-strong);
+      color: var(--text-primary);
+      font-family: var(--font-data);
+      font-size: 12px;
+    }
+
+    /* Web Persistent Notice banner */
+    .sandbox-warning {
+      background: rgba(233, 154, 31, 0.08);
+      border-bottom: 1px solid rgba(233, 154, 31, 0.2);
+      color: var(--color-secondary);
+      font-size: 12px;
+      padding: 6px 24px;
+      text-align: center;
+      font-family: var(--font-ui);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+    }
+
+    /* ==========================================================================
+       MAIN VIEW CONTAINER
+       ========================================================================== */
+    .prototype-container {
+      max-width: 1240px;
+      margin: 0 auto;
+      padding: 24px;
+      width: 100%;
+      flex: 1;
+    }
+
+    /* Variant Description Header */
+    .variant-descriptor-card {
+      margin-bottom: 20px;
+      padding: 14px 18px;
+      border-radius: var(--card-radius);
+      background: var(--bg-surface);
+      border: 1px solid var(--border-subtle);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 16px;
+    }
+
+    .descriptor-title {
+      font-size: 13px;
+      font-weight: 600;
+      color: var(--text-hero);
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .descriptor-pill {
+      font-family: var(--font-data);
+      font-size: 11px;
+      padding: 2px 6px;
+      border-radius: var(--badge-radius);
+      background: var(--color-primary);
+      color: white;
+    }
+
+    .descriptor-sub {
+      font-size: 12px;
+      color: var(--text-secondary);
+      margin-top: 2px;
+    }
+
+    .descriptor-keys {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      font-size: 12px;
+      color: var(--text-tertiary);
+      font-family: var(--font-data);
+    }
+
+    kbd {
+      padding: 2px 6px;
+      border-radius: 4px;
+      background: var(--bg-surface-elevated);
+      border: 1px solid var(--border-strong);
+      color: var(--text-secondary);
+    }
+
+    /* ==========================================================================
+       PANIC ROOM HUD & CONTROLS
+       ========================================================================== */
+    .panic-room-bar {
+      margin-bottom: 20px;
+      padding: 16px 20px;
+      border-radius: var(--card-radius);
+      background: var(--bg-surface);
+      border: 1px solid var(--border-subtle);
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      justify-content: space-between;
+      gap: 16px;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .panic-room-bar::before {
+      content: "";
+      position: absolute;
+      left: 0;
+      top: 0;
+      bottom: 0;
+      width: 4px;
+      background: var(--color-expense);
+      opacity: 0.8;
+    }
+
+    .panic-title-wrap {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .panic-icon-beacon {
+      width: 10px;
+      height: 10px;
+      border-radius: 50%;
+      background: var(--color-expense);
+      box-shadow: 0 0 10px var(--color-expense);
+      animation: pulseShock 2s infinite ease-in-out;
+    }
+
+    @keyframes pulseShock {
+      0%, 100% { transform: scale(1); opacity: 0.8; }
+      50% { transform: scale(1.3); opacity: 1; }
+    }
+
+    .panic-label {
+      font-size: 14px;
+      font-weight: 600;
+      color: var(--text-hero);
+    }
+
+    .panic-sub {
+      font-size: 12px;
+      color: var(--text-secondary);
+    }
+
+    .shock-chips-group {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+    }
+
+    .shock-chip {
+      display: inline-flex;
+      align-items: center;
+      gap: 7px;
+      padding: 6px 12px;
+      border-radius: var(--badge-radius);
+      font-family: var(--font-ui);
+      font-size: 12px;
+      font-weight: 500;
+      background: var(--bg-surface-elevated);
+      color: var(--text-secondary);
+      border: 1px solid var(--border-subtle);
+      cursor: pointer;
+      user-select: none;
+      transition: all var(--transition-fast);
+    }
+
+    .shock-chip:hover {
+      border-color: var(--border-strong);
+      color: var(--text-primary);
+    }
+
+    .shock-chip.active {
+      background: var(--color-expense-soft);
+      border-color: var(--color-expense);
+      color: var(--color-expense);
+      box-shadow: 0 0 14px rgba(209, 72, 93, 0.2);
+    }
+
+    .shock-chip svg {
+      width: 13px;
+      height: 13px;
+    }
+
+    /* ==========================================================================
+       RESILIENCE SCORE & HERO METRICS
+       ========================================================================== */
+    .metrics-dock {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+      gap: 16px;
+      margin-bottom: 24px;
+    }
+
+    .metric-card {
+      background: var(--bg-surface);
+      border: 1px solid var(--border-subtle);
+      border-radius: var(--card-radius);
+      padding: 18px 20px;
+      position: relative;
+      transition: border-color var(--transition-fast);
+    }
+
+    .metric-card.scenario-a-card {
+      border-left: 4px solid var(--color-primary);
+    }
+
+    .metric-card.scenario-b-card {
+      border-left: 4px solid var(--color-secondary);
+    }
+
+    .metric-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 8px;
+    }
+
+    .metric-name {
+      font-size: 13px;
+      font-weight: 600;
+      color: var(--text-secondary);
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .scenario-dot {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+    }
+
+    .dot-a { background: var(--color-primary); box-shadow: 0 0 8px var(--color-primary); }
+    .dot-b { background: var(--color-secondary); box-shadow: 0 0 8px var(--color-secondary); }
+
+    .metric-title-badge {
+      font-family: var(--font-data);
+      font-size: 11px;
+      padding: 2px 6px;
+      border-radius: var(--badge-radius);
+      background: var(--bg-surface-elevated);
+      color: var(--text-secondary);
+    }
+
+    .score-row {
+      display: flex;
+      align-items: baseline;
+      gap: 12px;
+    }
+
+    /* ADR-DS-001: JetBrains Mono 52px 700 Data Hero */
+    .hero-score {
+      font-family: var(--font-data);
+      font-size: 48px;
+      font-weight: 700;
+      line-height: 1;
+      letter-spacing: -0.04em;
+      color: var(--text-hero);
+      transition: color var(--transition-standard);
+    }
+
+    .score-denominator {
+      font-family: var(--font-data);
+      font-size: 16px;
+      color: var(--text-tertiary);
+    }
+
+    .runway-caption {
+      margin-top: 8px;
+      font-size: 13px;
+      color: var(--text-secondary);
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .runway-val {
+      font-family: var(--font-data);
+      font-weight: 600;
+      color: var(--text-primary);
+    }
+
+    /* ==========================================================================
+       TRAJECTORY CHART CANVAS (Dual-Scenario Bézier)
+       ========================================================================== */
+    .chart-panel {
+      background: var(--bg-surface);
+      border: 1px solid var(--border-subtle);
+      border-radius: var(--card-radius);
+      padding: 24px;
+      margin-bottom: 24px;
+      position: relative;
+    }
+
+    .chart-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 20px;
+    }
+
+    .chart-title {
+      font-size: 15px;
+      font-weight: 600;
+      color: var(--text-hero);
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .chart-legend {
+      display: flex;
+      align-items: center;
+      gap: 18px;
+      font-size: 13px;
+    }
+
+    .legend-item {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      cursor: pointer;
+      user-select: none;
+    }
+
+    .legend-line {
+      width: 16px;
+      height: 3px;
+      border-radius: 2px;
+    }
+
+    .legend-line-a { background: var(--color-primary); }
+    .legend-line-b { background: var(--color-secondary); }
+
+    .chart-svg-container {
+      width: 100%;
+      height: 320px;
+      position: relative;
+    }
+
+    svg.chart-svg {
+      width: 100%;
+      height: 100%;
+      overflow: visible;
+    }
+
+    .trajectory-path {
+      fill: none;
+      stroke-linecap: round;
+      stroke-linejoin: round;
+      transition: d var(--transition-crash), stroke var(--transition-standard);
+    }
+
+    .trajectory-a {
+      stroke: var(--color-primary);
+      stroke-width: 3.5;
+    }
+
+    .trajectory-b {
+      stroke: var(--color-secondary);
+      stroke-width: 3.5;
+    }
+
+    .chart-area-a {
+      fill: url(#gradient-a);
+      opacity: 0.15;
+      transition: d var(--transition-crash);
+    }
+
+    .chart-area-b {
+      fill: url(#gradient-b);
+      opacity: 0.12;
+      transition: d var(--transition-crash);
+    }
+
+    .chart-grid-line {
+      stroke: var(--chart-grid);
+      stroke-dasharray: 3 3;
+    }
+
+    .chart-zero-line {
+      stroke: var(--chart-zero-line);
+      stroke-width: 1;
+    }
+
+    .axis-text {
+      font-family: var(--font-data);
+      font-size: 11px;
+      fill: var(--text-tertiary);
+    }
+
+    /* Floating Interactive Crosshair & Tooltip */
+    .chart-tooltip {
+      position: absolute;
+      pointer-events: none;
+      background: var(--bg-surface-translucent);
+      backdrop-filter: blur(16px);
+      border: 1px solid var(--border-strong);
+      border-radius: var(--badge-radius);
+      padding: 8px 12px;
+      font-family: var(--font-data);
+      font-size: 12px;
+      transform: translate(-50%, -120%);
+      box-shadow: 0 8px 24px rgba(0,0,0,0.3);
+      display: none;
+      z-index: 50;
+      white-space: nowrap;
+    }
+
+    /* ==========================================================================
+       STRAWMAN & EVENT BLOCKS TIMELINE
+       ========================================================================== */
+    .timeline-section {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 20px;
+    }
+
+    @media (max-width: 860px) {
+      .timeline-section {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    .column-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 12px;
+      padding-bottom: 8px;
+      border-bottom: 1px solid var(--border-subtle);
+    }
+
+    .column-title {
+      font-size: 14px;
+      font-weight: 600;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .event-blocks-list {
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+
+    /* ADR-DS-001 §4: Dense UI elements need 12px inner padding */
+    .event-card {
+      background: var(--bg-surface);
+      border: 1px solid var(--border-subtle);
+      border-radius: var(--card-radius);
+      padding: 12px 14px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      transition: all var(--transition-fast);
+      cursor: pointer;
+    }
+
+    .event-card:hover {
+      border-color: var(--border-strong);
+      transform: translateY(-1px);
+    }
+
+    .event-meta {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .event-polarity-tag {
+      width: 28px;
+      height: 28px;
+      border-radius: var(--badge-radius);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-family: var(--font-data);
+      font-size: 14px;
+      font-weight: 700;
+    }
+
+    .tag-income {
+      background: var(--color-income-soft);
+      color: var(--color-income);
+    }
+
+    .tag-expense {
+      background: var(--color-expense-soft);
+      color: var(--color-expense);
+    }
+
+    .event-info-name {
+      font-size: 13px;
+      font-weight: 600;
+      color: var(--text-hero);
+    }
+
+    .event-info-sub {
+      font-size: 11px;
+      color: var(--text-tertiary);
+      font-family: var(--font-data);
+    }
+
+    .event-amount {
+      font-family: var(--font-data);
+      font-size: 14px;
+      font-weight: 600;
+      text-align: right;
+    }
+
+    .amount-positive { color: var(--color-income); }
+    .amount-negative { color: var(--color-expense); }
+
+    /* Strawman Badge */
+    .strawman-badge {
+      font-size: 10px;
+      font-family: var(--font-data);
+      background: var(--bg-surface-elevated);
+      color: var(--text-tertiary);
+      border: 1px dashed var(--border-strong);
+      padding: 1px 5px;
+      border-radius: var(--badge-radius);
+      margin-left: 6px;
+    }
+
+    /* ==========================================================================
+       ONBOARDING MINI-BAR (10-Second Hook: Liquid Balance + Income)
+       ========================================================================== */
+    .strawman-inputs-bar {
+      margin-bottom: 24px;
+      padding: 14px 18px;
+      border-radius: var(--card-radius);
+      background: var(--bg-surface);
+      border: 1px solid var(--border-subtle);
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      gap: 20px;
+      justify-content: space-between;
+    }
+
+    .input-field-group {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .input-label {
+      font-size: 12px;
+      color: var(--text-secondary);
+      font-weight: 500;
+    }
+
+    .pulse-input {
+      font-family: var(--font-data);
+      font-size: 14px;
+      font-weight: 600;
+      background: var(--bg-surface-elevated);
+      border: 1px solid var(--border-subtle);
+      color: var(--text-primary);
+      padding: 6px 10px;
+      border-radius: var(--badge-radius);
+      outline: none;
+      width: 140px;
+      transition: border-color var(--transition-fast);
+    }
+
+    .pulse-input:focus {
+      border-color: var(--color-primary);
+      box-shadow: 0 0 0 2px var(--border-glow);
+    }
+
+    /* ==========================================================================
+       MODAL DIALOGS (Export PIN & Block Editor)
+       ========================================================================== */
+    .modal-backdrop {
+      position: fixed;
+      inset: 0;
+      background: rgba(0, 0, 0, 0.65);
+      backdrop-filter: blur(8px);
+      z-index: 999;
+      display: none;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .modal-backdrop.open {
+      display: flex;
+    }
+
+    .pulse-modal {
+      background: var(--bg-surface);
+      border: 1px solid var(--border-strong);
+      border-radius: var(--card-radius);
+      padding: 24px;
+      width: 90%;
+      max-width: 420px;
+      box-shadow: 0 16px 40px rgba(0, 0, 0, 0.4);
+    }
+
+    .modal-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 16px;
+    }
+
+    .modal-title {
+      font-size: 16px;
+      font-weight: 700;
+      color: var(--text-hero);
+    }
+
+    .pin-display {
+      font-family: var(--font-data);
+      font-size: 32px;
+      letter-spacing: 0.25em;
+      text-align: center;
+      padding: 16px;
+      margin: 16px 0;
+      background: var(--bg-surface-elevated);
+      border: 1px dashed var(--color-primary);
+      border-radius: var(--card-radius);
+      color: var(--color-primary);
+      font-weight: 700;
+    }
+
+    /* ==========================================================================
+       FLOATING SWITCHER BAR (Skill Specification: Bottom Center Bar)
+       ========================================================================== */
+    .floating-switcher {
+      position: fixed;
+      bottom: 20px;
+      left: 50%;
+      transform: translateX(-50%);
+      z-index: 9999;
+      background: rgba(18, 20, 29, 0.92);
+      backdrop-filter: blur(20px);
+      border: 1px solid rgba(255, 255, 255, 0.2);
+      box-shadow: 0 12px 36px rgba(0, 0, 0, 0.5), 0 0 0 1px rgba(255, 255, 255, 0.05);
+      border-radius: 999px;
+      padding: 6px 10px;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      color: #ffffff;
+      user-select: none;
+    }
+
+    .switcher-arrow-btn {
+      background: rgba(255, 255, 255, 0.1);
+      border: none;
+      color: #ffffff;
+      width: 32px;
+      height: 32px;
+      border-radius: 50%;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: background var(--transition-fast), transform 100ms ease;
+    }
+
+    .switcher-arrow-btn:hover {
+      background: rgba(255, 255, 255, 0.2);
+    }
+
+    .switcher-arrow-btn:active {
+      transform: scale(0.92);
+    }
+
+    .switcher-info {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      padding: 0 6px;
+    }
+
+    .switcher-pill-active {
+      background: var(--color-primary);
+      color: #fff;
+      font-family: var(--font-data);
+      font-size: 11px;
+      font-weight: 700;
+      padding: 3px 8px;
+      border-radius: 999px;
+    }
+
+    .switcher-label {
+      font-size: 13px;
+      font-weight: 600;
+      letter-spacing: -0.01em;
+      white-space: nowrap;
+    }
+
+    .switcher-quick-tabs {
+      display: flex;
+      gap: 4px;
+      border-left: 1px solid rgba(255, 255, 255, 0.15);
+      padding-left: 10px;
+    }
+
+    .quick-tab-btn {
+      background: transparent;
+      border: 1px solid transparent;
+      color: #9499ad;
+      font-size: 12px;
+      font-weight: 500;
+      padding: 4px 10px;
+      border-radius: 999px;
+      cursor: pointer;
+      transition: all var(--transition-fast);
+    }
+
+    .quick-tab-btn:hover {
+      color: #ffffff;
+      background: rgba(255, 255, 255, 0.08);
+    }
+
+    .quick-tab-btn.active {
+      background: rgba(255, 255, 255, 0.18);
+      color: #ffffff;
+      font-weight: 600;
+    }
+
+    /* ==========================================================================
+       VARIANT SPECIFIC LAYOUT ADJUSTMENTS (RADICAL STRUCTURAL DIFFERENCES)
+       ========================================================================== */
+
+    /* Variant B: KINETIC HORIZON (Robinhood Style Chart-Forward Hero 65vh) */
+    [data-theme="B"] .chart-panel {
+      padding: 32px;
+      background: radial-gradient(circle at 50% 0%, #151a28 0%, #08090d 100%);
+      border: 1px solid rgba(138, 124, 255, 0.2);
+      box-shadow: 0 10px 40px -10px rgba(120, 105, 245, 0.15);
+    }
+
+    [data-theme="B"] .chart-svg-container {
+      height: 420px;
+    }
+
+    [data-theme="B"] .hero-score {
+      font-size: 64px;
+      background: linear-gradient(180deg, #ffffff 40%, #a4b3ca 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+    }
+
+    [data-theme="B"] .timeline-section {
+      display: flex;
+      overflow-x: auto;
+      gap: 16px;
+      padding-bottom: 12px;
+    }
+
+    [data-theme="B"] .timeline-section > div {
+      min-width: 380px;
+      flex: 1;
+    }
+
+    /* Variant C: TECHNICAL SLATE (Swiss Precision Light Studio Monospace) */
+    [data-theme="C"] .prototype-container {
+      max-width: 1360px;
+    }
+
+    [data-theme="C"] .chart-panel {
+      border: 1px solid #cbd5e1;
+      background: #ffffff;
+      box-shadow: 0 4px 12px rgba(15, 23, 42, 0.03);
+    }
+
+    [data-theme="C"] .hero-score {
+      font-size: 44px;
+      color: #0f172a;
+    }
+
+    [data-theme="C"] .chart-grid-line {
+      stroke: #e2e8f0;
+      stroke-dasharray: 2 4;
+    }
+
+    [data-theme="C"] .event-card {
+      border-left: 3px solid var(--border-strong);
+    }
+
+    [data-theme="C"] .event-card:hover {
+      border-left-color: var(--color-primary);
+    }
+  </style>
+</head>
+
+<body data-theme="H">
+
+  <!-- Persistent Warning Header per PRD §3 (Web Session Volatile) -->
+  <aside class="sandbox-warning">
+    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+      <path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/>
+      <line x1="12" y1="9" x2="12" y2="13"/>
+      <line x1="12" y1="17" x2="12.01" y2="17"/>
+    </svg>
+    <span><strong>Session-Scoped Sandbox (IndexedDB):</strong> Clearing browser cache erases this simulation. Export a <code>.pulse</code> file to persist.</span>
+  </aside>
+
+  <!-- Navigation Bar -->
+  <header class="pulse-header">
+    <div class="header-inner">
+      <div class="brand-mark">
+        <div class="brand-icon">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor">
+            <polyline points="22 12 18 12 15 21 9 3 6 12 2 12"></polyline>
+          </svg>
+        </div>
+        <span>Pulse</span>
+        <span class="badge-tag">SANDBOX V1</span>
+      </div>
+
+      <div class="header-actions">
+        <button class="button button-ghost" id="btnForkScenario" title="Fork current timeline to create Scenario B">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <circle cx="18" cy="18" r="3"></circle>
+            <circle cx="6" cy="6" r="3"></circle>
+            <path d="M18 9a9 9 0 0 1-9 9H6"></path>
+          </svg>
+          <span>Fork Scenario B</span>
+        </button>
+
+        <button class="button button-export" id="btnExportPulse" title="Export .pulse file with ephemeral PIN">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+            <polyline points="7 10 12 15 17 10"></polyline>
+            <line x1="12" y1="15" x2="12" y2="3"></line>
+          </svg>
+          <span>Export .pulse</span>
+        </button>
+      </div>
+    </div>
+  </header>
+
+  <!-- Main Sandbox View -->
+  <main class="prototype-container">
+
+    <!-- Active Variant Descriptor Banner -->
+    <div class="variant-descriptor-card">
+      <div>
+        <div class="descriptor-title">
+          <span class="descriptor-pill" id="activeVariantBadge">Variant A</span>
+          <span id="activeVariantTitle">Surgical Obsidian (Linear-Inspired Dark Matte)</span>
+        </div>
+        <div class="descriptor-sub" id="activeVariantNotes">
+          Purposeful dark UI with surgical typography, 12px dense spacing, hairline borders, and instrument-panel gravitas.
+        </div>
+      </div>
+      <div class="descriptor-keys">
+        <span>Cycle themes:</span>
+        <kbd>←</kbd>
+        <kbd>→</kbd>
+        <span>or</span>
+        <kbd>1</kbd>
+        <kbd>2</kbd>
+        <kbd>3</kbd>
+      </div>
+    </div>
+
+    <!-- Onboarding 10-Second Hook Bar (PRD §4.1) -->
+    <section class="strawman-inputs-bar">
+      <div class="input-field-group">
+        <label class="input-label" for="inputLiquidBalance">Current Liquid Balance:</label>
+        <input type="text" id="inputLiquidBalance" class="pulse-input" value="₹ 6,50,000">
+      </div>
+
+      <div class="input-field-group">
+        <label class="input-label" for="inputMonthlyIncome">Monthly Net Income:</label>
+        <input type="text" id="inputMonthlyIncome" class="pulse-input" value="₹ 1,40,000">
+      </div>
+
+      <div style="font-size: 12px; color: var(--text-tertiary); max-width: 480px;">
+        <em>Strawman estimates:</em> Change values or tap event blocks to recalculate the 12-month trajectory instantly.
+      </div>
+    </section>
+
+    <!-- Panic Room Stress-Test Bar (PRD §4.3) -->
+    <section class="panic-room-bar">
+      <div class="panic-title-wrap">
+        <div class="panic-icon-beacon"></div>
+        <div>
+          <div class="panic-label">The Panic Room (Stress Test Engine)</div>
+          <div class="panic-sub">Injects macroeconomic & emergency shocks across all scenarios simultaneously.</div>
+        </div>
+      </div>
+
+      <div class="shock-chips-group">
+        <button class="shock-chip" id="shockJobLoss" data-shock="jobLoss">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <rect x="2" y="7" width="20" height="14" rx="2" ry="2"></rect>
+            <path d="M16 21V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16"></path>
+          </svg>
+          <span>Job Loss (-4 Mo Income)</span>
+        </button>
+
+        <button class="shock-chip" id="shockMedical" data-shock="medical">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M12 2v20M2 12h20"></path>
+          </svg>
+          <span>Medical Emergency (-₹2,50,000)</span>
+        </button>
+
+        <button class="shock-chip" id="shockMarket" data-shock="market">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <polyline points="23 18 13.5 8.5 8.5 13.5 1 6"></polyline>
+            <polyline points="17 18 23 18 23 12"></polyline>
+          </svg>
+          <span>Market Crash (-30% Reserves)</span>
+        </button>
+      </div>
+    </section>
+
+    <!-- Side-by-Side Projected Resilience Score Display (ADR-DS-001 §3 Data Hero) -->
+    <section class="metrics-dock">
+      <!-- Scenario A Metric Card -->
+      <div class="metric-card scenario-a-card">
+        <div class="metric-header">
+          <div class="metric-name">
+            <span class="scenario-dot dot-a"></span>
+            <span>Scenario A: Buy New EV</span>
+          </div>
+          <span class="metric-title-badge">PROJECTED RESILIENCE</span>
+        </div>
+        <div class="score-row">
+          <span class="hero-score" id="scoreA">72</span>
+          <span class="score-denominator">/ 100</span>
+        </div>
+        <div class="runway-caption">
+          Survival cash runway:
+          <span class="runway-val" id="runwayA">9.4 Months</span>
+        </div>
+      </div>
+
+      <!-- Scenario B Metric Card -->
+      <div class="metric-card scenario-b-card">
+        <div class="metric-header">
+          <div class="metric-name">
+            <span class="scenario-dot dot-b"></span>
+            <span>Scenario B: Uber + S&amp;P 500</span>
+          </div>
+          <span class="metric-title-badge">PROJECTED RESILIENCE</span>
+        </div>
+        <div class="score-row">
+          <span class="hero-score" id="scoreB">86</span>
+          <span class="score-denominator">/ 100</span>
+        </div>
+        <div class="runway-caption">
+          Survival cash runway:
+          <span class="runway-val" id="runwayB">14.2 Months</span>
+        </div>
+      </div>
+    </section>
+
+    <!-- Trajectory Chart Section (ADR-DS-001 §5 TrajectoryChart) -->
+    <section class="chart-panel">
+      <div class="chart-header">
+        <div class="chart-title">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <line x1="18" y1="20" x2="18" y2="10"></line>
+            <line x1="12" y1="20" x2="12" y2="4"></line>
+            <line x1="6" y1="20" x2="6" y2="14"></line>
+          </svg>
+          <span>12-Month Liquidity Trajectory Projections</span>
+        </div>
+
+        <div class="chart-legend">
+          <div class="legend-item" id="toggleLegendA">
+            <span class="legend-line legend-line-a"></span>
+            <span>Scenario A: Buy EV</span>
+          </div>
+          <div class="legend-item" id="toggleLegendB">
+            <span class="legend-line legend-line-b"></span>
+            <span>Scenario B: Uber + Invest</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="chart-svg-container" id="chartContainer">
+        <!-- Tooltip on hover -->
+        <div class="chart-tooltip" id="chartTooltip">
+          <div id="tooltipMonth" style="color: var(--text-tertiary); margin-bottom: 4px;">Month 6</div>
+          <div style="color: var(--color-primary);">Scenario A: <strong id="tooltipValA">₹ 5,80,000</strong></div>
+          <div style="color: var(--color-secondary);">Scenario B: <strong id="tooltipValB">₹ 7,12,000</strong></div>
+        </div>
+
+        <svg class="chart-svg" id="chartSvg" viewBox="0 0 1000 320" preserveAspectRatio="none">
+          <defs>
+            <linearGradient id="gradient-a" x1="0%" y1="0%" x2="0%" y2="100%">
+              <stop offset="0%" stop-color="var(--color-primary)" stop-opacity="0.35"/>
+              <stop offset="100%" stop-color="var(--color-primary)" stop-opacity="0.0"/>
+            </linearGradient>
+            <linearGradient id="gradient-b" x1="0%" y1="0%" x2="0%" y2="100%">
+              <stop offset="0%" stop-color="var(--color-secondary)" stop-opacity="0.30"/>
+              <stop offset="100%" stop-color="var(--color-secondary)" stop-opacity="0.0"/>
+            </linearGradient>
+          </defs>
+
+          <!-- Horizontal Grid Lines -->
+          <line x1="40" y1="50" x2="980" y2="50" class="chart-grid-line"></line>
+          <line x1="40" y1="120" x2="980" y2="120" class="chart-grid-line"></line>
+          <line x1="40" y1="190" x2="980" y2="190" class="chart-grid-line"></line>
+          <line x1="40" y1="260" x2="980" y2="260" class="chart-zero-line"></line>
+
+          <!-- Y-Axis Labels -->
+          <text x="32" y="54" text-anchor="end" class="axis-text">₹12L</text>
+          <text x="32" y="124" text-anchor="end" class="axis-text">₹8L</text>
+          <text x="32" y="194" text-anchor="end" class="axis-text">₹4L</text>
+          <text x="32" y="264" text-anchor="end" class="axis-text">₹0</text>
+
+          <!-- Area Fills -->
+          <path id="pathAreaA" class="chart-area-a" d=""></path>
+          <path id="pathAreaB" class="chart-area-b" d=""></path>
+
+          <!-- Trajectory Bézier Curves -->
+          <path id="pathTrajectoryA" class="trajectory-path trajectory-a" d=""></path>
+          <path id="pathTrajectoryB" class="trajectory-path trajectory-b" d=""></path>
+
+          <!-- X-Axis Month Markers (1 to 12) -->
+          <g id="xAxisLabels"></g>
+          
+          <!-- Hover Tracking Guide Line -->
+          <line id="hoverGuide" x1="0" y1="20" x2="0" y2="280" stroke="var(--border-strong)" stroke-dasharray="4 4" style="display: none;"></line>
+        </svg>
+      </div>
+    </section>
+
+    <!-- Event Blocks Timeline (PRD §4.2 Single & Forked Scenarios) -->
+    <section class="timeline-section">
+      <!-- Scenario A Blocks -->
+      <div>
+        <div class="column-header">
+          <div class="column-title">
+            <span class="scenario-dot dot-a"></span>
+            <span>Scenario A: Event Blocks</span>
+          </div>
+          <button class="button button-ghost" style="padding: 4px 8px; font-size: 11px;" onclick="addEventBlock('A')">
+            + Add Block
+          </button>
+        </div>
+
+        <div class="event-blocks-list" id="listBlocksA">
+          <div class="event-card">
+            <div class="event-meta">
+              <div class="event-polarity-tag tag-expense">-</div>
+              <div>
+                <div class="event-info-name">Apartment Rent <span class="strawman-badge">Strawman</span></div>
+                <div class="event-info-sub">Recurring • Months 1–12</div>
+              </div>
+            </div>
+            <div class="event-amount amount-negative">₹ 35,000 /mo</div>
+          </div>
+
+          <div class="event-card">
+            <div class="event-meta">
+              <div class="event-polarity-tag tag-expense">-</div>
+              <div>
+                <div class="event-info-name">Living Essentials <span class="strawman-badge">Strawman</span></div>
+                <div class="event-info-sub">Recurring • Groceries, Utilities</div>
+              </div>
+            </div>
+            <div class="event-amount amount-negative">₹ 28,000 /mo</div>
+          </div>
+
+          <div class="event-card" style="border-left: 3px solid var(--color-primary);">
+            <div class="event-meta">
+              <div class="event-polarity-tag tag-expense">-</div>
+              <div>
+                <div class="event-info-name">EV Downpayment &amp; EMI</div>
+                <div class="event-info-sub">Month 2 Down (₹1.5L) + ₹22,000/mo</div>
+              </div>
+            </div>
+            <div class="event-amount amount-negative">₹ 22,000 /mo</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Scenario B Blocks -->
+      <div>
+        <div class="column-header">
+          <div class="column-title">
+            <span class="scenario-dot dot-b"></span>
+            <span>Scenario B: Event Blocks</span>
+          </div>
+          <button class="button button-ghost" style="padding: 4px 8px; font-size: 11px;" onclick="addEventBlock('B')">
+            + Add Block
+          </button>
+        </div>
+
+        <div class="event-blocks-list" id="listBlocksB">
+          <div class="event-card">
+            <div class="event-meta">
+              <div class="event-polarity-tag tag-expense">-</div>
+              <div>
+                <div class="event-info-name">Apartment Rent <span class="strawman-badge">Strawman</span></div>
+                <div class="event-info-sub">Recurring • Months 1–12</div>
+              </div>
+            </div>
+            <div class="event-amount amount-negative">₹ 35,000 /mo</div>
+          </div>
+
+          <div class="event-card">
+            <div class="event-meta">
+              <div class="event-polarity-tag tag-expense">-</div>
+              <div>
+                <div class="event-info-name">Living Essentials <span class="strawman-badge">Strawman</span></div>
+                <div class="event-info-sub">Recurring • Groceries, Utilities</div>
+              </div>
+            </div>
+            <div class="event-amount amount-negative">₹ 28,000 /mo</div>
+          </div>
+
+          <div class="event-card" style="border-left: 3px solid var(--color-secondary);">
+            <div class="event-meta">
+              <div class="event-polarity-tag tag-expense">-</div>
+              <div>
+                <div class="event-info-name">Uber Budget &amp; S&amp;P SIP</div>
+                <div class="event-info-sub">No Downpayment • Flexible Transit</div>
+              </div>
+            </div>
+            <div class="event-amount amount-negative">₹ 12,000 /mo</div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+  </main>
+
+  <!-- Export PIN Dialog (ADR-DS-001 & PRD §3) -->
+  <div class="modal-backdrop" id="modalExport">
+    <div class="pulse-modal">
+      <div class="modal-header">
+        <h3 class="modal-title">Export .pulse Container</h3>
+        <button class="button button-ghost" style="padding: 2px 6px;" onclick="closeModal()">✕</button>
+      </div>
+      <p style="font-size: 13px; color: var(--text-secondary); margin-bottom: 8px;">
+        To import this simulation into the native iOS/Android Pulse app with zero cloud tracking, enter this one-time ephemeral PIN on your mobile device:
+      </p>
+      
+      <div class="pin-display" id="exportPinDisplay">749-301</div>
+
+      <div style="font-size: 11px; color: var(--text-tertiary); text-align: center; margin-bottom: 16px;">
+        PIN expires in 10 minutes. Encryption key derived client-side via PBKDF2.
+      </div>
+
+      <div style="display: flex; gap: 10px; justify-content: flex-end;">
+        <button class="button button-ghost" onclick="closeModal()">Dismiss</button>
+        <button class="button button-primary" onclick="triggerDownload()">Download .pulse file</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- FLOATING PROTOTYPE SWITCHER (Mandatory per Skill UI.md §4) -->
+  <nav class="floating-switcher" aria-label="Prototype theme switcher">
+    <button class="switcher-arrow-btn" id="btnPrevVariant" title="Previous theme (Left Arrow)" aria-label="Previous theme">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+        <polyline points="15 18 9 12 15 6"></polyline>
+      </svg>
+    </button>
+
+    <div class="switcher-info">
+      <span class="switcher-pill-active" id="switcherPill">A</span>
+      <span class="switcher-label" id="switcherLabel">Variant A: Surgical Obsidian</span>
+    </div>
+
+    <button class="switcher-arrow-btn" id="btnNextVariant" title="Next theme (Right Arrow)" aria-label="Next theme">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+        <polyline points="9 18 15 12 9 6"></polyline>
+      </svg>
+    </button>
+
+    <div class="switcher-quick-tabs">
+      <button class="quick-tab-btn active" data-v="H">⭐ Hybrid (Winner)</button>
+      <button class="quick-tab-btn" data-v="C">Light Studio</button>
+      <button class="quick-tab-btn" data-v="A">A: Obsidian</button>
+      <button class="quick-tab-btn" data-v="B">B: Horizon</button>
+    </div>
+  </nav>
+
+  <!-- JAVASCRIPT SIMULATION ENGINE & SWITCHER -->
+  <script>
+    // =========================================================================
+    // PROTOTYPE VARIANT DEFINITIONS
+    // =========================================================================
+    const VARIANTS = [
+      {
+        id: 'H',
+        badge: '⭐ Winner (Hybrid)',
+        title: 'Surgical Horizon (A Layout + B Luminous Chart)',
+        notes: 'The selected direction: Linear-style precision cards & hairline borders paired with Robinhood phosphorescent Bézier trajectories.'
+      },
+      {
+        id: 'C',
+        badge: 'Official Light Mode',
+        title: 'Technical Slate (Swiss Monospace Light Studio)',
+        notes: 'WCAG AA 4.5:1 adjusted light studio theme, technical blueprint coordinate grid, and monospaced diagnostic calipers.'
+      },
+      {
+        id: 'A',
+        badge: 'Variant A',
+        title: 'Surgical Obsidian (Linear-Inspired Dark Matte)',
+        notes: 'Purposeful dark UI with surgical typography, 12px dense spacing, hairline borders, and instrument-panel gravitas.'
+      },
+      {
+        id: 'B',
+        badge: 'Variant B',
+        title: 'Kinetic Horizon (Robinhood Chart-Forward Phosphor)',
+        notes: 'Full-bleed chart hero canvas (65vh), glowing phosphorescent curves, high-energy contrast, and fluid card ribbon.'
+      }
+    ];
+
+    let currentVariantIndex = 0;
+
+    // Simulation State
+    const state = {
+      liquidBalance: 650000,
+      monthlyIncome: 140000,
+      scenarioA_burn: 35000 + 28000 + 22000,
+      scenarioB_burn: 35000 + 28000 + 12000,
+      shocks: {
+        jobLoss: false,
+        medical: false,
+        market: false
+      }
+    };
+
+    // =========================================================================
+    // VARIANT SWITCHING LOGIC (URL Param sync + Keyboard navigation)
+    // =========================================================================
+    function setVariant(variantId, updateUrl = true) {
+      const idx = VARIANTS.findIndex(v => v.id === variantId);
+      if (idx === -1) return;
+      currentVariantIndex = idx;
+      const v = VARIANTS[idx];
+
+      // Update Body Dataset
+      document.body.setAttribute('data-theme', v.id);
+
+      // Update Header Descriptors
+      document.getElementById('activeVariantBadge').textContent = v.badge;
+      document.getElementById('activeVariantTitle').textContent = v.title;
+      document.getElementById('activeVariantNotes').textContent = v.notes;
+
+      // Update Floating Switcher
+      document.getElementById('switcherPill').textContent = v.id;
+      document.getElementById('switcherLabel').textContent = `${v.badge}: ${v.title.split(' ')[0]} ${v.title.split(' ')[1]}`;
+
+      // Update Quick Tab Pills
+      document.querySelectorAll('.quick-tab-btn').forEach(btn => {
+        btn.classList.toggle('active', btn.getAttribute('data-v') === v.id);
+      });
+
+      // Update URL search param reload-stable
+      if (updateUrl) {
+        const url = new URL(window.location.href);
+        url.searchParams.set('variant', v.id);
+        window.history.replaceState({}, '', url.toString());
+      }
+
+      // Redraw Chart for the selected theme
+      renderTrajectories();
+    }
+
+    function cycleVariant(direction) {
+      let nextIdx = currentVariantIndex + direction;
+      if (nextIdx < 0) nextIdx = VARIANTS.length - 1;
+      if (nextIdx >= VARIANTS.length) nextIdx = 0;
+      setVariant(VARIANTS[nextIdx].id);
+    }
+
+    // Keyboard Arrow listener
+    window.addEventListener('keydown', (e) => {
+      // Don't intercept when user is typing in an input
+      if (['INPUT', 'TEXTAREA'].includes(document.activeElement.tagName)) return;
+
+      if (e.key === 'ArrowLeft') {
+        e.preventDefault();
+        cycleVariant(-1);
+      } else if (e.key === 'ArrowRight') {
+        e.preventDefault();
+        cycleVariant(1);
+      } else if (e.key === 'h' || e.key === 'H' || e.key === '0') {
+        setVariant('H');
+      } else if (e.key === '1') {
+        setVariant('A');
+      } else if (e.key === '2') {
+        setVariant('B');
+      } else if (e.key === '3') {
+        setVariant('C');
+      }
+    });
+
+    document.getElementById('btnPrevVariant').addEventListener('click', () => cycleVariant(-1));
+    document.getElementById('btnNextVariant').addEventListener('click', () => cycleVariant(1));
+
+    document.querySelectorAll('.quick-tab-btn').forEach(btn => {
+      btn.addEventListener('click', () => {
+        setVariant(btn.getAttribute('data-v'));
+      });
+    });
+
+    // Check initial search param (?variant=H/A/B/C)
+    const initialParams = new URLSearchParams(window.location.search);
+    const initialVariant = initialParams.get('variant') || 'H';
+    setVariant(initialVariant, false);
+
+    // =========================================================================
+    // TRAJECTORY SIMULATION ENGINE (Dual-Scenario Bézier calculation)
+    // =========================================================================
+    function computePoints(scenario) {
+      const points = [];
+      let balance = state.liquidBalance;
+      const monthlyIncome = state.monthlyIncome;
+      const monthlyExpense = scenario === 'A' ? state.scenarioA_burn : state.scenarioB_burn;
+
+      // Apply initial asset shock if market crash
+      if (state.shocks.market) {
+        balance = balance * 0.70;
+      }
+
+      const totalMonths = 12;
+      for (let m = 0; m <= totalMonths; m++) {
+        if (m > 0) {
+          let income = monthlyIncome;
+          // Job Loss Shock: zero income for months 3, 4, 5, 6
+          if (state.shocks.jobLoss && m >= 3 && m <= 6) {
+            income = 0;
+          }
+
+          let expense = monthlyExpense;
+          // Medical Emergency Shock: lump sum deduction at Month 4
+          if (state.shocks.medical && m === 4) {
+            expense += 250000;
+          }
+
+          // Scenario A EV Downpayment lump sum at Month 2
+          if (scenario === 'A' && m === 2) {
+            expense += 150000;
+          }
+
+          balance += (income - expense);
+        }
+        points.push({ month: m, balance: balance });
+      }
+      return points;
+    }
+
+    // Convert balance array to SVG Bézier Path
+    function generateBezierPath(points, width, height, padX = 50, padY = 40) {
+      const minVal = -100000;
+      const maxVal = 1400000;
+      const usableWidth = width - padX - 30;
+      const usableHeight = height - padY * 2;
+
+      const coords = points.map((p, i) => {
+        const x = padX + (i / 12) * usableWidth;
+        const normalizedY = (p.balance - minVal) / (maxVal - minVal);
+        const y = height - padY - (normalizedY * usableHeight);
+        return { x, y, balance: p.balance };
+      });
+
+      if (coords.length < 2) return { path: '', area: '', coords: [] };
+
+      // Generate smooth Bézier
+      let d = `M ${coords[0].x} ${coords[0].y}`;
+      for (let i = 0; i < coords.length - 1; i++) {
+        const curr = coords[i];
+        const next = coords[i + 1];
+        const cpX = (curr.x + next.x) / 2;
+        d += ` C ${cpX} ${curr.y}, ${cpX} ${next.y}, ${next.x} ${next.y}`;
+      }
+
+      // Generate Area closing at Y=260 (Zero line)
+      const zeroY = height - padY - ((0 - minVal) / (maxVal - minVal) * usableHeight);
+      const area = `${d} L ${coords[coords.length - 1].x} ${zeroY} L ${coords[0].x} ${zeroY} Z`;
+
+      return { path: d, area, coords };
+    }
+
+    // Render Trajectory SVG Paths & Update Metrics
+    let globalCoordsA = [];
+    let globalCoordsB = [];
+
+    function renderTrajectories() {
+      const ptsA = computePoints('A');
+      const ptsB = computePoints('B');
+
+      const svgWidth = 1000;
+      const svgHeight = 320;
+
+      const resA = generateBezierPath(ptsA, svgWidth, svgHeight);
+      const resB = generateBezierPath(ptsB, svgWidth, svgHeight);
+
+      globalCoordsA = resA.coords;
+      globalCoordsB = resB.coords;
+
+      document.getElementById('pathTrajectoryA').setAttribute('d', resA.path);
+      document.getElementById('pathAreaA').setAttribute('d', resA.area);
+
+      document.getElementById('pathTrajectoryB').setAttribute('d', resB.path);
+      document.getElementById('pathAreaB').setAttribute('d', resB.area);
+
+      // Render X Axis Markers
+      const xContainer = document.getElementById('xAxisLabels');
+      if (!xContainer.hasChildNodes()) {
+        for (let i = 0; i <= 12; i++) {
+          const x = 50 + (i / 12) * (svgWidth - 80);
+          const text = document.createElementNS('http://www.w3.org/2000/svg', 'text');
+          text.setAttribute('x', x);
+          text.setAttribute('y', 295);
+          text.setAttribute('text-anchor', 'middle');
+          text.setAttribute('class', 'axis-text');
+          text.textContent = i === 0 ? 'Now' : `M${i}`;
+          xContainer.appendChild(text);
+        }
+      }
+
+      // Calculate Projected Resilience Scores (0–100) & Runways
+      updateResilienceScores(ptsA, ptsB);
+    }
+
+    function updateResilienceScores(ptsA, ptsB) {
+      // Calculate minimum balance & runway months
+      let minA = Math.min(...ptsA.map(p => p.balance));
+      let minB = Math.min(...ptsB.map(p => p.balance));
+
+      let endA = ptsA[ptsA.length - 1].balance;
+      let endB = ptsB[ptsB.length - 1].balance;
+
+      // Base scoring algorithm
+      let scoreA = Math.round(Math.max(12, Math.min(98, (endA / 1000000) * 60 + (minA > 0 ? 30 : -20))));
+      let scoreB = Math.round(Math.max(18, Math.min(99, (endB / 1000000) * 60 + (minB > 0 ? 35 : -15))));
+
+      // Deduct for active shocks
+      if (state.shocks.jobLoss) { scoreA -= 24; scoreB -= 16; }
+      if (state.shocks.medical) { scoreA -= 18; scoreB -= 12; }
+      if (state.shocks.market)  { scoreA -= 12; scoreB -= 8;  }
+
+      scoreA = Math.max(8, Math.min(98, scoreA));
+      scoreB = Math.max(14, Math.min(99, scoreB));
+
+      // Calculate runway
+      let runwayA = (minA < 0 ? (ptsA.findIndex(p => p.balance < 0) || 3) + 0.2 : (endA / state.scenarioA_burn)).toFixed(1);
+      let runwayB = (minB < 0 ? (ptsB.findIndex(p => p.balance < 0) || 5) + 0.4 : (endB / state.scenarioB_burn)).toFixed(1);
+
+      animateScoreCounter('scoreA', scoreA);
+      animateScoreCounter('scoreB', scoreB);
+
+      document.getElementById('runwayA').textContent = `${runwayA} Months`;
+      document.getElementById('runwayB').textContent = `${runwayB} Months`;
+    }
+
+    function animateScoreCounter(elementId, targetValue) {
+      const el = document.getElementById(elementId);
+      const startValue = parseInt(el.textContent) || 0;
+      const duration = 400;
+      const startTime = performance.now();
+
+      function update(now) {
+        const elapsed = now - startTime;
+        const progress = Math.min(elapsed / duration, 1);
+        const current = Math.round(startValue + (targetValue - startValue) * progress);
+        el.textContent = current;
+
+        // Color shift based on resilience danger
+        if (targetValue < 40) {
+          el.style.color = 'var(--color-expense)';
+        } else if (targetValue < 65) {
+          el.style.color = 'var(--color-secondary)';
+        } else {
+          el.style.color = 'var(--text-hero)';
+        }
+
+        if (progress < 1) requestAnimationFrame(update);
+      }
+      requestAnimationFrame(update);
+    }
+
+    // =========================================================================
+    // PANIC ROOM SHOCK CHIP TOGGLE
+    // =========================================================================
+    document.querySelectorAll('.shock-chip').forEach(chip => {
+      chip.addEventListener('click', () => {
+        const shockKey = chip.getAttribute('data-shock');
+        state.shocks[shockKey] = !state.shocks[shockKey];
+        chip.classList.toggle('active', state.shocks[shockKey]);
+
+        // Signature Crash Animation Trigger
+        const pathA = document.getElementById('pathTrajectoryA');
+        const pathB = document.getElementById('pathTrajectoryB');
+        pathA.style.filter = state.shocks[shockKey] ? 'drop-shadow(0 0 10px var(--color-expense))' : 'none';
+        pathB.style.filter = state.shocks[shockKey] ? 'drop-shadow(0 0 8px var(--color-secondary))' : 'none';
+
+        renderTrajectories();
+      });
+    });
+
+    // =========================================================================
+    // CHART HOVER INSPECTOR
+    // =========================================================================
+    const chartContainer = document.getElementById('chartContainer');
+    const tooltip = document.getElementById('chartTooltip');
+    const guideLine = document.getElementById('hoverGuide');
+
+    chartContainer.addEventListener('mousemove', (e) => {
+      const rect = chartContainer.getBoundingClientRect();
+      const mouseX = e.clientX - rect.left;
+      const svgWidth = 1000;
+      const scaleX = svgWidth / rect.width;
+      const scaledX = mouseX * scaleX;
+
+      // Find closest month coordinate
+      let closestIdx = 0;
+      let minDiff = 99999;
+      globalCoordsA.forEach((c, idx) => {
+        const diff = Math.abs(c.x - scaledX);
+        if (diff < minDiff) {
+          minDiff = diff;
+          closestIdx = idx;
+        }
+      });
+
+      if (globalCoordsA[closestIdx] && globalCoordsB[closestIdx]) {
+        const coordA = globalCoordsA[closestIdx];
+        const coordB = globalCoordsB[closestIdx];
+
+        guideLine.setAttribute('x1', coordA.x);
+        guideLine.setAttribute('x2', coordA.x);
+        guideLine.style.display = 'block';
+
+        const formatINR = (val) => {
+          return (val < 0 ? '-₹ ' : '₹ ') + Math.abs(Math.round(val)).toLocaleString('en-IN');
+        };
+
+        document.getElementById('tooltipMonth').textContent = closestIdx === 0 ? 'Month 0 (Today)' : `Month ${closestIdx} Projection`;
+        document.getElementById('tooltipValA').textContent = formatINR(coordA.balance);
+        document.getElementById('tooltipValB').textContent = formatINR(coordB.balance);
+
+        tooltip.style.left = `${(coordA.x / svgWidth) * 100}%`;
+        tooltip.style.top = `${Math.min(coordA.y, coordB.y) / 320 * rect.height}px`;
+        tooltip.style.display = 'block';
+      }
+    });
+
+    chartContainer.addEventListener('mouseleave', () => {
+      tooltip.style.display = 'none';
+      guideLine.style.display = 'none';
+    });
+
+    // =========================================================================
+    // MODAL DIALOGS
+    // =========================================================================
+    function openExportModal() {
+      // Generate randomized 6-digit PIN
+      const pin = `${Math.floor(100 + Math.random() * 900)}-${Math.floor(100 + Math.random() * 900)}`;
+      document.getElementById('exportPinDisplay').textContent = pin;
+      document.getElementById('modalExport').classList.add('open');
+    }
+
+    function closeModal() {
+      document.getElementById('modalExport').classList.remove('open');
+    }
+
+    function triggerDownload() {
+      const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify({
+        app: "Pulse",
+        version: "1.0.0",
+        state: state,
+        exportedAt: new Date().toISOString()
+      }));
+      const dlAnchor = document.createElement('a');
+      dlAnchor.setAttribute("href", dataStr);
+      dlAnchor.setAttribute("download", `sandbox_session_${Date.now()}.pulse`);
+      document.body.appendChild(dlAnchor);
+      dlAnchor.click();
+      dlAnchor.remove();
+      closeModal();
+    }
+
+    document.getElementById('btnExportPulse').addEventListener('click', openExportModal);
+
+    function addEventBlock(scenario) {
+      alert(`Add Event Block dialog opened for Scenario ${scenario}. (In native app, opens PulseBottomSheet glassmorphism overlay)`);
+    }
+
+    // Initialize initial trajectory
+    renderTrajectories();
+  </script>
+</body>
+</html>
