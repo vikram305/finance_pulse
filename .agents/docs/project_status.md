@@ -9,11 +9,10 @@ AI never loads this file — human references it and tells AI what's relevant.
 ## Features
 
 ### ✅ Completed
-<!-- None yet. Scaffold cleaned. First feature: Sandbox (Onboarding + SandboxBloc). -->
+- Scaffold audit & cleanup — DONE (Issue 01: weather artefacts removed, pubspec dependencies updated for Drift/cryptography, CI passing for tests, analyze, apk, and web).
 
 ### 🔄 In Progress
-<!-- Scaffold audit & cleanup — DONE 2026-10-17 -->
-<!-- Next: pubspec.yaml cleanup → Step 1 of scaffold_audit.md implementation order -->
+<!-- Ready for next ticket: Issue 02 (Domain Entities & Projection Engine) -->
 
 ### 📋 Planned
 - Sandbox (Onboarding + FinancialEvent CRUD + ProjectionEngine + TimelineChart)

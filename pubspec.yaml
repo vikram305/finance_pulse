@@ -29,14 +29,14 @@ dependencies:
   # Local database (ADR-018: Drift with SQLCipher & WASM)
   drift: ^2.24.2
   drift_flutter: ^0.2.4
-  sqlcipher_flutter_libs: ^0.5.24
+  sqlcipher_flutter_libs: ^0.7.0+eol
   sqlite3: ^2.5.7
   path_provider: ^2.1.4
 
   # Security & encryption (ADR-004, ADR-016)
   local_auth: ^2.3.0
   flutter_secure_storage: ^9.2.2
-  cryptography: ^2.7.0
+  cryptography: ^2.9.0
   cryptography_flutter: ^2.3.4
 
   # Utilities
