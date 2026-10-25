@@ -12,7 +12,7 @@ The application will adhere strictly to Clean Architecture principles.
 
 * **FinancialEvent:** Encapsulates a UUID, nomenclature, polarity (income/expense), temporal boundaries (start month, end month), an amount, and a boolean `isBaseline` flag identifying it as a permanent baseline block vs. a correctable "Strawman" estimate.
 
-* **FinancialShock:** An app-level event (not Scenario-scoped) representing an external stress scenario (e.g., Job Loss, Medical Emergency). Encapsulates a UUID, label, and a `List<FinancialEvent>` of additive shock events. Each `FinancialEvent` in this list is a fully-formed event (with its own polarity, amount, startMonth, endMonth) representing the financial impact of the shock (e.g., `Job Loss` contains a `{polarity: expense, amount: −₹60,000, startMonth: 0, endMonth: 5}` income-loss event). When a Shock is activated, its event list is **appended to the Scenario's event list at calculation time** — the Scenario itself is never mutated. This is the mechanism that enables cross-Scenario resilience comparison in the Panic Room. **V1 scope constraint:** `FinancialShock` instances are a **predefined, hardcoded catalogue** of constants defined in the domain layer (e.g., `FinancialShocks.catalogue`). They are not stored in Isar, have no repository, and are not user-editable in V1. User-defined shocks are explicitly out of scope for V1.
+* **FinancialShock:** An app-level event (not Scenario-scoped) representing an external stress scenario (e.g., Job Loss, Medical Emergency). Encapsulates a UUID, label, and a `List<FinancialEvent>` of additive shock events. Each `FinancialEvent` in this list is a fully-formed event (with its own polarity, amount, startMonth, endMonth) representing the financial impact of the shock (e.g., `Job Loss` contains a `{polarity: expense, amount: −₹60,000, startMonth: 0, endMonth: 5}` income-loss event). When a Shock is activated, its event list is **appended to the Scenario's event list at calculation time** — the Scenario itself is never mutated. This is the mechanism that enables cross-Scenario resilience comparison in the Panic Room. **V1 scope constraint:** `FinancialShock` instances are a **predefined, hardcoded catalogue** of constants defined in the domain layer (e.g., `FinancialShocks.catalogue`). They are not stored in the database, have no repository, and are not user-editable in V1. User-defined shocks are explicitly out of scope for V1.
 
 * **Scenario:** A named, independent container of `FinancialEvent` entities. Encapsulates a UUID, a user-defined name (e.g., "Buy a Car"), and an ordered list of `FinancialEvent` IDs. The BLoC state holds a `Map<ScenarioId, Scenario>`. At least one Scenario always exists (the default). A maximum of two active Scenarios are supported in V1. **Duplicate is a deep copy:** duplicating a Scenario generates new UUIDs for all cloned `FinancialEvent` entities; edits to either Scenario's events are fully independent. Shallow copy (shared event references) is explicitly rejected — it silently corrupts both Scenarios on edit.
 
@@ -53,12 +53,13 @@ Four hardcoded shocks ship in V1 as constants in `lib/domain/constants/financial
 ### 4.1 Storage Architecture (Mobile vs. Web)
 
 #### Mobile (Persistent)
-* Local timeline data (all Scenarios, FinancialEvents, user settings) resides in an encrypted Isar database using a 256-bit symmetric key derived from the user's Master PIN. No plain-text financial integers are written to disk.
+* Local timeline data (all Scenarios, FinancialEvents, user settings) resides in an encrypted SQLite database via Drift and `sqlcipher_flutter_libs` using a 256-bit symmetric key derived from the user's Master PIN (ADR-018). No plain-text financial integers are written to disk.
+* Drift tables use relational foreign keys with `ON DELETE CASCADE` (`scenarios` and `financial_events`).
 
 #### Web (Session-Scoped)
-* The Flutter Web instance uses IndexedDB via Isar Web for within-session persistence. This storage is treated as **volatile**: it may be wiped by browser cache clearing, private browsing mode expiry, or browser updates.
+* The Flutter Web instance uses IndexedDB via Drift WASM (`drift/wasm.dart` in a dedicated Web Worker) for within-session persistence. This storage is treated as **volatile**: it may be wiped by browser cache clearing, private browsing mode expiry, or browser updates.
 * The BLoC detects the web platform at startup (`kIsWeb`) and displays a **session-dismissible** header banner: *"Browser storage is volatile. Clear your cache and your sandbox is gone. Export your scenario or download the app to keep your data."* The banner is shown once per browser session. The user may dismiss it; dismissal state is held in memory only (not written to IndexedDB) so the banner reappears on every new session. This ensures the user is warned at least once per session without a persistent flag that would be wiped alongside the data it warns about.
-* The web build does **not** maintain a persistent Master PIN. There is no Isar encryption layer on web. Data at rest in IndexedDB is unencrypted — this is acceptable because web storage is classified as ephemeral and users are warned accordingly.
+* The web build does **not** maintain a persistent Master PIN. There is no database encryption layer on web. Data at rest in IndexedDB is unencrypted — this is acceptable because web storage is classified as ephemeral and users are warned accordingly.
 
 ### 4.2 Key Derivation & Backup Portability
 
@@ -70,7 +71,7 @@ Four hardcoded shocks ship in V1 as constants in `lib/domain/constants/financial
 * When a web user opts to export, the app presents a modal prompting them to create a one-time export PIN. This PIN is **not stored** anywhere in the web session.
 * The app derives an encryption key from this PIN via PBKDF2 (same parameters as mobile), encrypts the serialized BLoC state, and triggers a browser download of the `.pulse` file.
 * The modal includes explicit copy: *"Choose a PIN you'll remember — you'll need to enter it when importing on the mobile app. There is no recovery if you forget it."*
-* On the mobile app, the user selects "Import `.pulse` file" and enters the same PIN used at web export time. The mobile app derives the decryption key via PBKDF2 and populates the Isar database. After a successful import, the user is prompted to set (or change) their persistent Master PIN for ongoing mobile use.
+* On the mobile app, the user selects "Import `.pulse` file" and enters the same PIN used at web export time. The mobile app derives the decryption key via PBKDF2 and populates the Drift database. After a successful import, the user is prompted to set (or change) their persistent Master PIN for ongoing mobile use.
 
 ### 4.3 Presentation Shielding (Native Only)
 * UI is natively obscured upon transitioning to the OS background (`FlutterSecureStorage` / `FLAG_SECURE` on Android; `ignoresScreenshotForRecording` on iOS).

@@ -34,7 +34,7 @@
 | Term | Definition |
 |---|---|
 | **.pulse file** | The portable backup format. A PBKDF2-encrypted, serialized BLoC state (all Scenarios + FinancialEvents). |
-| **Master PIN** | The user-defined PIN used to derive the PBKDF2 encryption key on mobile. Stored persistently (never in plaintext). Used to encrypt the Isar DB and all mobile `.pulse` exports. |
+| **Master PIN** | The user-defined PIN used to derive the PBKDF2 encryption key on mobile. Stored persistently (never in plaintext). Used to encrypt the local database (Drift via SQLCipher) and all mobile `.pulse` exports. |
 | **Ephemeral PIN** | A one-time PIN entered at web export time only. Not stored anywhere in the web session. Used to encrypt a web-exported `.pulse` file for mobile import. |
 | **PBKDF2** | The key derivation function. Parameters: minimum 100,000 iterations, SHA-256. Implemented via `cryptography: ^2.9.0` + `cryptography_flutter: ^2.3.4`. Used for both mobile and web `.pulse` encryption. |
 
@@ -45,9 +45,9 @@
 | **SandboxBloc** | The primary BLoC. Manages the `Map<ScenarioId, Scenario>` and triggers ProjectionEngine recalculation on every state change. Provided at MaterialApp root. |
 | **PanicRoomBloc** | Mobile-only BLoC. Manages FinancialShock activation state across all Scenarios. Registered in GetIt only when `!kIsWeb`. |
 | **ProjectionEngine** | A pure function: `List<ProjectionNode> calculate(Scenario, List<FinancialShock>)`. Stateless, no side effects. Called once per active Scenario per state change. |
-| **IsarService** | Singleton. Manages Isar database lifecycle. Branches on `kIsWeb` for storage strategy. Pinned to `isar: 3.1.0+1`. |
+| **DatabaseService** | Singleton. Manages Drift database lifecycle. Branches on `kIsWeb` for encrypted mobile (SQLCipher) vs. unencrypted IndexedDB (Drift WASM). |
 | **kIsWeb** | Flutter's compile-time platform flag. Used as a hard gate for mobile-only features (Panic Room, biometric auth, persistent PIN, `.pulse` import). |
-| **Isar Web** | IndexedDB-backed Isar adapter for the web build (`isar_web`, bundled in `isar_flutter_libs`). Session-scoped. No encryption layer on web. |
+| **Drift WASM** | WebAssembly SQLite adapter for the web build (`drift/wasm.dart` via Web Worker). Session-scoped. No encryption layer on web. |
 
 ### Business & Product
 
@@ -76,6 +76,13 @@
 | ADR-009 | ResilienceScore ceiling = 12 months — deliberate, anchored to emergency fund benchmark |
 | ADR-010 | Projection window user-adjustable 12–36 months; 36 is a hard engine cap (accuracy + perf) |
 | ADR-011 | `kIsWeb` compile-time gate for all mobile-only features — tree-shakeable, idiomatic Flutter |
+| ADR-012 | GoRouter as navigation library — declarative redirect guards for kIsWeb |
+| ADR-013 | GetIt as DI container — separation of DI from state management |
+| ADR-014 | [SUPERSEDED] Isar as local database — superseded by ADR-018 due to stalled maintenance |
+| ADR-015 | UTF-8 JSON as `.pulse` serialization format — decoupled from database schema |
+| ADR-016 | Mobile Master PIN — setup deferred to first write-commit; biometric fallback to PIN |
+| ADR-017 | EventBlock interaction model — tap-to-add, drag-to-reorder |
+| ADR-018 | Drift as local database — type-safe SQLite, SQLCipher on mobile, WASM + IndexedDB on web |
 
 ---
 
@@ -83,6 +90,6 @@
 
 | # | Feature | Decision | Status |
 |---|---|---|---|
-| D-01 | Isar version | **Pin `isar: 3.1.0+1`** — Isar 4 (`4.0.0-dev.14`) is still pre-release and stalled. Isar 3.x has confirmed web platform support. | ✅ Resolved |
+| D-01 | Database choice | **Drift (`drift`, `drift_flutter`, `drift_dev`)** with `sqlcipher_flutter_libs` — replaces stalled Isar (ADR-018). | ✅ Resolved |
 | D-02 | PBKDF2 library | **`cryptography: ^2.9.0` + `cryptography_flutter: ^2.3.4`** — high-level API, actively maintained, WASM-safe, native backends (Apple CryptoKit / javax.crypto). | ✅ Resolved |
-| D-03 | Web storage adapter | **`isar_web` (bundled in `isar_flutter_libs`)** — no separate adapter needed. `IsarService` branches on `kIsWeb` per TDD §4.1. | ✅ Resolved |
+| D-03 | Web storage adapter | **Drift WASM (`drift/wasm.dart` via Web Worker)** — session-scoped volatile IndexedDB per ADR-007 / ADR-018. | ✅ Resolved |

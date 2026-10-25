@@ -24,13 +24,13 @@
 | **ResilienceScore** | Internal entity name (code). The UI label is "Projected Resilience". | TDD §2.1 | Code name ≠ UI label |
 | **Runway** | Months until ending balance reaches zero. Raw input to Projected Resilience formula. | ADR-009 | — |
 | **`.pulse` file** | PBKDF2-encrypted portable file containing serialized BLoC state. | ADR-004, TDD §4.2 | Must be cross-platform compatible |
-| **Master PIN** | User-defined PIN set once at mobile onboarding. PBKDF2 input for Isar encryption and mobile `.pulse` files. Never stored in plaintext. | ADR-004 | Mobile only |
+| **Master PIN** | User-defined PIN set once at mobile onboarding. PBKDF2 input for database encryption and mobile `.pulse` files. Never stored in plaintext. | ADR-004 | Mobile only |
 | **Ephemeral PIN** | One-time PIN entered at web export. Discarded immediately. | ADR-004 | Web only |
 | **PBKDF2** | KDF: min 100k iterations, SHA-256. Library: `cryptography ^2.9.0` + `cryptography_flutter ^2.3.4`. | TDD §4.2 | — |
 | **SandboxBloc** | BLoC managing `Map<ScenarioId, Scenario>` + ProjectionEngine calls. Provided at MaterialApp root. | TDD §2.2 | — |
 | **PanicRoomBloc** | Mobile-only BLoC. Manages FinancialShock activation. Registered with `!kIsWeb` guard. | ADR-011 | — |
-| **IsarService** | Singleton. Branches on `kIsWeb` for encrypted mobile storage vs. unencrypted IndexedDB on web. | TDD §4.1 | Pin `isar: 3.1.0+1` |
-| **Web Playground** | Session-scoped Flutter Web (WASM) build. State in IndexedDB (volatile). Excludes Panic Room, Projected Resilience, import, biometric, Isar encryption. | PRD §3, ADR-007 | Intentional lock-in mechanic |
+| **DatabaseService** | Singleton. Manages Drift database lifecycle. Branches on `kIsWeb` for encrypted mobile storage (SQLCipher) vs. unencrypted IndexedDB on web (Drift WASM). | TDD §4.1, ADR-018 | Drift |
+| **Web Playground** | Session-scoped Flutter Web (WASM) build. State in IndexedDB (volatile). Excludes Panic Room, Projected Resilience, import, biometric, database encryption. | PRD §3, ADR-007 | Intentional lock-in mechanic |
 | **kIsWeb** | Flutter compile-time constant. Canonical feature gate for all mobile-only code. Tree-shaken by compiler. | ADR-011 | No runtime abstraction |
 | **TimelineChart** | `RepaintBoundary`-wrapped custom Bezier painter. Receives `Map<ScenarioId, List<ProjectionNode>>`. One trajectory per Scenario. | TDD §3.1, ADR-005 | — |
 | **10-Second Hook** | Onboarding goal: cold open → populated Scenario trajectory in <10s, 2 inputs only. | PRD §4.1, ADR-003 | — |
@@ -55,8 +55,8 @@
 | Projection window | 12–36 months adjustable, default 12, hard cap 36 | ADR-010 |
 | Rendering | Custom Bezier CustomPainter in RepaintBoundary | ADR-005 |
 | PIN/encryption | PBKDF2 via `cryptography ^2.9.0` | ADR-004 |
-| Isar version | Pin `isar: 3.1.0+1` | Project Status DEFER |
-| Web storage | `isar_web` (bundled), unencrypted IndexedDB | Project Status DEFER |
+| Database choice | Drift with `sqlcipher_flutter_libs` (mobile) and Drift WASM (web) | ADR-018 (supersedes ADR-014) |
+| Web storage | Drift WASM via Web Worker, unencrypted IndexedDB | ADR-007, ADR-018 |
 
 ---
 
@@ -64,10 +64,11 @@
 
 | Candidate | Decision Gap | Priority |
 |-----------|-------------|----------|
-| ADR-012 | **GoRouter selection** — referenced in Project Status routes/DI but no ADR justifies choosing GoRouter over Navigator 2.0 or others | Medium |
-| ADR-013 | **GetIt as DI container** — `injection_container.dart` referenced across TDD and Project Status; no ADR for GetIt vs. Riverpod/Provider/injectable | Medium |
-| ADR-014 | **Isar as local database** — heavy use throughout but no ADR justifying Isar vs. Hive/drift/ObjectBox for encrypted offline storage | High |
-| ADR-015 | **`.pulse` file serialization format** — BLoC state serialization (JSON? binary? schema?) before encryption is unspecified; this is a cross-platform contract | High |
+| ADR-012 | **GoRouter selection** — referenced in Project Status routes/DI but no ADR justifies choosing GoRouter over Navigator 2.0 or others | Resolved |
+| ADR-013 | **GetIt as DI container** — `injection_container.dart` referenced across TDD and Project Status; no ADR for GetIt vs. Riverpod/Provider/injectable | Resolved |
+| ADR-014 | **Isar as local database** — superseded by ADR-018 | Resolved |
+| ADR-015 | **`.pulse` file serialization format** — BLoC state serialization (JSON schema) before encryption | Resolved |
+| ADR-018 | **Drift as local database** — modern SQLite with SQLCipher and WASM web support | Resolved |
 
 ---
 

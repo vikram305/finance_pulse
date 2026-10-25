@@ -26,8 +26,11 @@ dependencies:
   # Navigation (ADR-012)
   go_router: ^14.6.2
 
-  # Local database — PINNED STABLE (ADR-014). Do NOT upgrade to 4.x until it reaches stable.
-  # isar: ^4.0.0-dev.14
+  # Local database (ADR-018: Drift with SQLCipher & WASM)
+  drift: ^2.24.2
+  drift_flutter: ^0.2.4
+  sqlcipher_flutter_libs: ^0.5.24
+  sqlite3: ^2.5.7
   path_provider: ^2.1.4
 
   # Security & encryption (ADR-004, ADR-016)
@@ -49,8 +52,8 @@ dev_dependencies:
   bloc_test: ^10.0.0
   mockito: ^5.4.4
 
-  # Code generation — isar_generator for Isar entity schemas (ADR-014)
-  # isar_generator: 
+  # Code generation — drift_dev for Drift tables and DAOs (ADR-018)
+  drift_dev: ^2.24.2
   build_runner: ^2.4.9
 
 flutter:

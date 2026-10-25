@@ -28,7 +28,7 @@ The following features are **intentionally absent** from the Flutter Web build. 
 | `.pulse` Import | ❌ | ✅ |
 | Panic Room (Shock chips) | ❌ | ✅ |
 | Projected Resilience Score | ❌ | ✅ |
-| Persistent encrypted storage (Isar) | ❌ | ✅ |
+| Persistent encrypted storage (Drift + SQLCipher) | ❌ | ✅ |
 | Biometric / presentation shielding | ❌ | ✅ |
 
 ## 4. Core User Journeys (Native App)

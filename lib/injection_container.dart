@@ -5,7 +5,7 @@ final locator = GetIt.instance;
 /// Registers all app-level dependencies.
 ///
 /// TODO(next-session): Wire Pulse features in this order:
-///   1. Isar database (encrypted on mobile, plain on web)
+///   1. DatabaseService / Drift database (encrypted on mobile, plain on web)
 ///   2. FinancialEventRepository
 ///   3. ScenarioRepository
 ///   4. ProjectionEngine (pure function — no DI needed, call directly)

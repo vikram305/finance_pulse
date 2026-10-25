@@ -18,7 +18,7 @@
 ### ADR-004: Decoupled Master PIN Encryption
 * **Context:** Required a secure backup mechanism that survives physical device loss without a centralized backend. A secondary constraint emerged: the Flutter Web Playground must be able to produce a portable `.pulse` file for import into the native mobile app, despite having no persistent storage of its own.
 * **Decision:** Backup payloads are encrypted using a key derived from a user-defined Master PIN via PBKDF2. Two distinct flows are defined for mobile and web:
-  * **Mobile (Persistent PIN):** The user sets their Master PIN once during onboarding. The PBKDF2-derived key is used to encrypt the Isar database and all exported `.pulse` files. The PIN is never stored in plaintext.
+  * **Mobile (Persistent PIN):** The user sets their Master PIN once during onboarding. The PBKDF2-derived key is used to encrypt the local database (Drift via SQLCipher) and all exported `.pulse` files. The PIN is never stored in plaintext.
   * **Web (Ephemeral PIN):** When a web user chooses to export their session, the app prompts them to enter a one-time PIN. This PIN is used ephemerally — PBKDF2 derives the encryption key, the `.pulse` file is encrypted and downloaded, and the PIN is immediately discarded. The web session holds no persistent PIN. The user must enter the same PIN on the mobile app to import the file.
 * **Rationale:** Binding the backup to a hardware Keystore key makes recovery impossible if the device is destroyed. A user-held PIN ensures the encrypted file is portable to any new device. The ephemeral web PIN flow preserves the "zero-server, absolute privacy" guarantee while enabling the web-to-mobile continuity story. The user is explicitly warned at export time: "Choose a PIN you'll remember — you'll need it to import on mobile."
 
@@ -67,7 +67,7 @@
   3. **Performance as a secondary backstop.** The `O(N × M)` engine (N = months, M = active FinancialEvents) must complete within 16.6ms on a 60fps device. At 36 months with a reasonable event count, this target is achievable without Isolates. Beyond 36 months this assumption requires re-validation — making the cap doubly justified.
 
 ### ADR-011: `kIsWeb` as the Compile-Time Feature Gate for Mobile-Only Features
-* **Context:** Several features are permanently mobile-only (Panic Room, biometric authentication, persistent Master PIN, `.pulse` import, Isar encryption). A gating mechanism was needed to exclude these from the Flutter Web build. Two approaches were evaluated: Flutter's built-in compile-time constant `kIsWeb`, and a runtime `PlatformCapabilities` abstraction injected via GetIt.
+* **Context:** Several features are permanently mobile-only (Panic Room, biometric authentication, persistent Master PIN, `.pulse` import, database encryption). A gating mechanism was needed to exclude these from the Flutter Web build. Two approaches were evaluated: Flutter's built-in compile-time constant `kIsWeb`, and a runtime `PlatformCapabilities` abstraction injected via GetIt.
 * **Decision:** All mobile-only feature gates use **`kIsWeb` directly** — in BLoC guards (e.g., reject `ForkScenario` events in `PanicRoomBloc` registration), widget-tree conditionals, and GetIt registration guards (`if (!kIsWeb)`). No `PlatformCapabilities` abstraction is introduced.
 * **Rationale:**
   1. **The web/mobile split is permanent, not a runtime toggle.** `kIsWeb` is resolved at compile time by the Flutter toolchain. A web build will never gain a Panic Room at runtime; the split is architectural. A runtime abstraction would add indirection for a boundary that cannot change.
@@ -75,21 +75,22 @@
   3. **`kIsWeb` is an established Flutter idiom.** It is the canonical mechanism used by the Flutter SDK itself and the broader ecosystem for platform-conditional logic. Introducing a bespoke abstraction on top of it would surprise contributors reading an open-source codebase.
   4. **Unit test coverage is not lost.** The `ProjectionEngine` and core BLoC logic are pure functions testable without platform context. Platform-gated registration guards in `injection_container.dart` are integration-tested via the actual GetIt setup, not mocked.
 
-### ADR-014: Isar as the Local Database
+### ADR-014: Isar as the Local Database [SUPERSEDED by ADR-018]
+* **Status:** Superseded by ADR-018 (Drift as the Local Database).
 * **Context:** An offline-first app with encrypted persistent storage and a session-scoped web build requires a local database that satisfies three simultaneous constraints: (1) native Flutter support with encryption hooks, (2) web platform compatibility without a separate adapter, and (3) FOSS licensing compatible with open-sourcing the codebase. Four options were evaluated: Isar, drift (SQLite + SQLCipher), Hive, and ObjectBox.
-* **Decision:** **Isar 3.1.0+1** (pinned stable release) is the local database for both the mobile and web builds.
+* **Decision:** **Isar 3.1.0+1** (pinned stable release) was initially selected as the local database for both the mobile and web builds.
 * **Rationale:**
-  1. **Web platform support (isar_web).** `isar_web` is bundled inside `isar_flutter_libs`. The same `IsarService` code runs on web (IndexedDB-backed, unencrypted) and mobile (file-backed, encrypted) via a single `kIsWeb` branch — no separate adapter or package. drift has no first-class web story; Hive's web support is partial; ObjectBox has no web support at all.
-  2. **Built-in encryption integration.** Isar's encryption key is passed directly at database-open time via the `encryptionKey` parameter — no plugin glue, no SQLCipher linking step. This makes the mobile encrypted storage path straightforward and audit-friendly for an open-source codebase.
-  3. **Flutter-native API.** Isar is designed from the ground up for Flutter/Dart. Its code-generation model (`isar_generator`), typed query builder, and reactive watchers are idiomatic Dart. drift's type-safe DSL requires SQL knowledge to use effectively; Hive's box model is too flat for the Scenario/FinancialEvent relational structure; ObjectBox's core is closed-source, introducing licensing uncertainty for a FOSS project.
-* **Consequences:** The project is pinned to Isar 3.x. Isar 4.x is pre-release and stalled as of the decision date (`4.0.0-dev.14`). If Isar 4 reaches stable or if the project is abandoned, migration to drift remains feasible — the domain entities are clean Pure Dart objects decoupled from Isar annotations via the repository pattern.
+  1. **Web platform support (isar_web).** `isar_web` was bundled inside `isar_flutter_libs`.
+  2. **Built-in encryption integration.** Isar's encryption key was passed directly at database-open time via the `encryptionKey` parameter.
+  3. **Flutter-native API.** Isar was designed for Flutter/Dart with a code-generation model (`isar_generator`).
+* **Consequences & Supersession:** Isar 3.x has become legacy, and Isar 4.x stalled in pre-release (`4.0.0-dev.14`) without active maintenance, leading to toolchain and interop fragility on modern Flutter/Dart. As anticipated in the original consequences section, the project migrates to **Drift** (see ADR-018). Domain entities remain clean Pure Dart objects decoupled from persistence annotations via the repository pattern.
 
 
 ### ADR-015: UTF-8 JSON as the `.pulse` File Serialization Format
-* **Context:** The web export → mobile import flow (the core acquisition funnel) requires a cross-platform serialization contract. The `.pulse` file encapsulates the full BLoC state (all Scenarios + FinancialEvents) before PBKDF2 encryption. Three options were evaluated: (A) UTF-8 JSON, (B) MessagePack binary, (C) Isar's native JSON export.
-* **Decision:** The `.pulse` payload is serialized as **UTF-8 JSON** before encryption. The top-level envelope includes a mandatory `"version"` integer field (starting at `1`) alongside the Scenario and FinancialEvent payloads. The JSON schema is defined independently of the Isar entity schema.
+* **Context:** The web export → mobile import flow (the core acquisition funnel) requires a cross-platform serialization contract. The `.pulse` file encapsulates the full BLoC state (all Scenarios + FinancialEvents) before PBKDF2 encryption. Three options were evaluated: (A) UTF-8 JSON, (B) MessagePack binary, (C) Database native JSON export.
+* **Decision:** The `.pulse` payload is serialized as **UTF-8 JSON** before encryption. The top-level envelope includes a mandatory `"version"` integer field (starting at `1`) alongside the Scenario and FinancialEvent payloads. The JSON schema is defined independently of the database entity schema.
 * **Rationale:**
-  1. **Schema decoupling.** Tying the portable format to the Isar entity schema (Option C) would mean any future entity refactor silently breaks old `.pulse` files. A dedicated JSON schema evolves independently — the importer can handle version migrations explicitly.
+  1. **Schema decoupling.** Tying the portable format to the database entity schema (Option C) would mean any future entity refactor silently breaks old `.pulse` files. A dedicated JSON schema evolves independently — the importer can handle version migrations explicitly.
   2. **Forward compatibility at zero cost.** The `"version"` field enables the mobile importer to detect schema version and apply migration logic in V2+ without breaking V1-exported files.
   3. **Debug transparency.** During development, the unencrypted payload can be inspected as plain text. A binary format (Option B) requires dedicated tooling to debug cross-platform import failures — a meaningful cost on an open-source project.
   4. **No additional dependency.** JSON is available in `dart:convert`. MessagePack (Option B) would require `messagepack_dart` for marginal size savings on a file exported infrequently.
@@ -104,9 +105,9 @@
   ```
 
 ### ADR-016: Mobile Master PIN — Setup Timing, Biometric Fallback, and Recovery Policy
-* **Context:** ADR-004 defines the Master PIN as the PBKDF2 input for mobile Isar encryption and `.pulse` exports, and states it is set "once during onboarding." Three sub-decisions were unspecified: (1) the exact moment PIN setup is triggered relative to the 10-Second Hook, (2) the fallback path when biometric authentication fails, and (3) the recovery policy if the user forgets their PIN.
+* **Context:** ADR-004 defines the Master PIN as the PBKDF2 input for mobile database encryption and `.pulse` exports, and states it is set "once during onboarding." Three sub-decisions were unspecified: (1) the exact moment PIN setup is triggered relative to the 10-Second Hook, (2) the fallback path when biometric authentication fails, and (3) the recovery policy if the user forgets their PIN.
 * **Decision:**
-  1. **PIN setup timing — Deferred to first Isar write-commit.** The Master PIN is not collected during the 10-Second Hook. The user experiences onboarding uninterrupted (entering Liquid Balance + Monthly Net Income → Strawman Scenario → live chart). PIN setup is triggered immediately before the first `Scenario` is persisted to Isar — at the point the user's data has value and they are already invested. No financial data is ever written to Isar without a PIN; the encryption key is derived before the first write, not applied retroactively.
+  1. **PIN setup timing — Deferred to first database write-commit.** The Master PIN is not collected during the 10-Second Hook. The user experiences onboarding uninterrupted (entering Liquid Balance + Monthly Net Income → Strawman Scenario → live chart). PIN setup is triggered immediately before the first `Scenario` is persisted to the database — at the point the user's data has value and they are already invested. No financial data is ever written to the database without a PIN; the encryption key is derived before the first write, not applied retroactively.
   2. **Biometric gate fallback — Fall back to Master PIN.** If `local_auth` biometric authentication fails (degraded hardware, too many failed attempts, biometric not enrolled), the UI falls back to a Master PIN entry prompt. The PIN is the ultimate backstop. Biometric is a convenience layer, not the gate itself.
   3. **Recovery policy — PIN change via old PIN + export nudge (no server recovery).** The user may change their Master PIN at any time by entering their current PIN first. If they forget the current PIN entirely, there is no server-side recovery — the user must wipe and reinstall the app. To mitigate catastrophic data loss, the PIN setup screen includes a prominent, persistent nudge: *"Export a backup now. If you ever forget this PIN or get a new device, your `.pulse` file is the only way to recover your data."* This is user-managed recovery, not a backdoor.
 * **Rationale:**
@@ -139,6 +140,21 @@
 * **Decision:** **`get_it`** is used as the dependency injection container. BLoCs are provided to the widget tree via `flutter_bloc`'s `BlocProvider`, not via GetIt directly.
 * **Rationale:**
   1. **Separation of DI from state management.** GetIt manages the construction and lifetime of repositories and services (singletons, lazy singletons). BLoC state is managed by `flutter_bloc`. Mixing DI and state management (as Riverpod does) creates a tighter coupling that is harder to test in isolation.
-  2. **`kIsWeb` registration guards.** GetIt's registration API allows `if (!kIsWeb)` guards at registration time — `PanicRoomBloc` and `IsarService` (encrypted variant) are only registered on mobile. This is the most direct implementation of ADR-011's `kIsWeb` gating strategy.
+  2. **`kIsWeb` registration guards.** GetIt's registration API allows `if (!kIsWeb)` guards at registration time — `PanicRoomBloc` and `DatabaseService` (encrypted variant) are only registered on mobile. This is the most direct implementation of ADR-011's `kIsWeb` gating strategy.
   3. **Established Clean Architecture idiom.** GetIt + flutter_bloc is the dominant pattern in Flutter Clean Architecture repositories and tutorials. Open-source contributors will recognise it immediately; a bespoke Riverpod architecture would require orientation.
   4. **No widget tree pollution.** GetIt resolves dependencies outside the widget tree. This means `ProjectionEngine` use cases and repositories can be instantiated and tested without a widget test harness — consistent with the TDD mandate for the Domain layer.
+
+### ADR-018: Drift as the Local Database (Superseding ADR-014)
+* **Context:** Isar 3.x is legacy and Isar 4.x has been abandoned in pre-release (`4.0.0-dev.14`) without active development or maintenance, creating severe toolchain and binary interop risks on modern Flutter/Dart. A replacement local database engine was required that satisfies:
+  1. Actively maintained, production-grade Flutter/Dart support.
+  2. Full database encryption at rest on native mobile via user's PBKDF2-derived key (ADR-004, ADR-016).
+  3. First-class Flutter Web WASM support (IndexedDB persistence within browser sessions per ADR-007 and TDD §4.1).
+  4. Reactive streams (watchers) for BLoC unidirectional data flow.
+  5. Relational integrity with foreign keys and cascade delete.
+* **Decision:** **Drift (`drift`, `drift_flutter`, `drift_dev`)** with **`sqlcipher_flutter_libs`** on native mobile and **Drift WASM + IndexedDB** on web is adopted as the canonical local database.
+* **Architecture & Details:**
+  1. **Mobile Encryption:** Native mobile uses `sqlcipher_flutter_libs` to perform full-database page encryption (AES-256) using the 256-bit key derived via PBKDF2 (SHA-256, 100k iterations) from the user's Master PIN. Tables, indexes, schema metadata, and SQLite WAL files are completely encrypted at rest.
+  2. **Web Playground Storage:** Web uses `drift/wasm.dart` backed by IndexedDB in a dedicated Web Worker. The web session remains unencrypted and volatile, and the ephemeral export PIN is never stored in the browser (discarded immediately after `.pulse` export).
+  3. **Relational Schema:** Two normalized tables are defined: `scenarios` and `financial_events`. `financial_events` contains a `scenario_id` foreign key referencing `scenarios(id) ON DELETE CASCADE` and an integer `order_index`. Duplicating a Scenario performs an explicit deep copy generating new UUIDs, ensuring zero cross-scenario data leakage.
+  4. **Lifecycle & Dependency Injection:** `DatabaseService` manages the database lifecycle. On web, the database opens immediately unencrypted. On mobile, `DatabaseService` opens the encrypted database lazily once the PBKDF2 key is derived (deferred to first write-commit after onboarding PIN setup, or after PIN/biometric unlock on subsequent launches).
+* **Rationale:** Drift is the most mature, actively maintained relational database in the Flutter ecosystem. Clean Architecture domain entities remain completely independent pure Dart objects, with data-layer DAOs and mappers translating to/from Drift table classes.

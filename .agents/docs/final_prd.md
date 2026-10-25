@@ -49,7 +49,7 @@
  SEO billboard       Flutter WASM          iOS / Android
  HTML/CSS            Session-scoped        Full feature set
                      IndexedDB             Persistent encrypted
-                     (volatile)            Isar storage
+                     (volatile)            Drift + SQLCipher
 ```
 
 ### Step 1 — Discovery (The Billboard)
@@ -58,9 +58,9 @@ Users find the SEO-optimised HTML/CSS landing page (`getpulse.com`) via organic 
 ### Step 2 — The Hook (The Web Playground)
 Users click "Try the Sandbox" and land in the Flutter Web (WASM) Playground. They experience the **10-Second Hook** onboarding with zero installation friction.
 
-- Session state is backed by **IndexedDB via Isar Web** (volatile).
+- Session state is backed by **IndexedDB via Drift WASM** (volatile).
 - A **session-dismissible header banner** is shown on every new browser session: *"Browser storage is volatile. Clear your cache and your sandbox is gone. Export your scenario or download the app to keep your data."* Dismissal is in-memory only — not written to IndexedDB — so the banner reappears on the next session.
-- The web session holds **no persistent Master PIN** and **no Isar encryption layer**. Data at rest in IndexedDB is unencrypted; users are warned accordingly.
+- The web session holds **no persistent Master PIN** and **no database encryption layer**. Data at rest in IndexedDB is unencrypted; users are warned accordingly.
 
 ### Step 3 — The Lock-In (The Mobile App)
 After building their Scenario, users are prompted to export a `.pulse` file (requires entering a one-time Ephemeral PIN) and download the native iOS/Android app to import it. The native app is the **only path** to: the full Panic Room, the Projected Resilience Score, persistent encrypted storage, and biometric security.
@@ -76,7 +76,7 @@ After building their Scenario, users are prompted to export a `.pulse` file (req
 | `.pulse` Import | ❌ | ✅ |
 | Panic Room (Shock chips) | ❌ | ✅ |
 | Projected Resilience Score | ❌ | ✅ |
-| Persistent encrypted storage (Isar) | ❌ | ✅ |
+| Persistent encrypted storage (Drift + SQLCipher) | ❌ | ✅ |
 | Biometric / presentation shielding | ❌ | ✅ |
 
 The absence of Panic Room and Projected Resilience Score on web is the **product mechanic** that drives mobile downloads — not a technical limitation.
@@ -105,7 +105,7 @@ The absence of Panic Room and Projected Resilience Score on web is the **product
 3. A dismissible notice informs the user: *"The Strawman blocks below are auto-generated estimates. The accuracy of your Projected Resilience Score depends on how much you correct them."*
 4. App instantly transitions to the dashboard: a 12-month trajectory chart populated with auto-generated **Strawman** blocks (Rent, Living Costs, EMI) seeded from the 50/30/20 rule. A shimmer `SkeletonLoader` plays during Strawman generation to signal the engine is calculating.
 5. User taps a block to correct its value; the chart animates to the new trajectory instantly.
-6. **First Isar write-commit triggers PIN setup** (see §8.1).
+6. **First database write-commit triggers PIN setup** (see §8.1).
 
 ### 5.2 The Sandbox Engine
 
@@ -150,7 +150,7 @@ UUID, name, `List<FinancialEvent IDs>`. Min 1, max 2 active in V1 (enforced in `
 
 **`FinancialShock`**
 UUID, label, `List<FinancialEvent>` (additive shock events appended at calculation time — Scenario never mutated).
-V1: Predefined constant catalogue only. No Isar. No repository. No CRUD.
+V1: Predefined constant catalogue only. No database storage. No repository. No CRUD.
 
 **`ProjectionNode`**
 `monthIndex`, `startingBalance`, `netCashFlow`, `endingBalance`, `activeEventIds`.
@@ -176,7 +176,7 @@ Complexity: O(N × M). Target: ≤ 16.6ms per recalculation on 60fps device. Win
 | State management | BLoC (`flutter_bloc`) | — |
 | Dependency injection | GetIt (`get_it`) | ADR-013 |
 | Navigation | GoRouter (`go_router`) | ADR-012 |
-| Local database | Isar `3.1.0+1` (pinned stable) | ADR-014 |
+| Local database | Drift with SQLCipher & Drift WASM | ADR-018 |
 | Encryption KDF | `cryptography ^2.9.0` + `cryptography_flutter ^2.3.4` (PBKDF2, SHA-256, 100k iterations) | ADR-004 |
 | Feature gating | `kIsWeb` compile-time constant | ADR-011 |
 | Rendering | Custom Bézier `CustomPainter` in `RepaintBoundary` | ADR-005 |
@@ -205,9 +205,9 @@ Domain layer is TDD-first. No Presentation or Data layer code may be merged unti
 
 ### 8.1 Mobile Master PIN Flow (ADR-016)
 
-1. **Deferred to first Isar write-commit** — 10-Second Hook is uninterrupted.
+1. **Deferred to first database write-commit** — 10-Second Hook is uninterrupted.
 2. `PinEntryDialog(mode: PinMode.setup)` — two fields (PIN + confirm) + export nudge: *"Export a backup now. If you ever forget this PIN or get a new device, your `.pulse` file is the only way to recover your data."*
-3. No data ever written to Isar without a PIN.
+3. No data ever written to database without a PIN.
 4. **PIN change:** Requires entering current PIN.
 5. **Forgotten PIN:** No server recovery. Wipe + reinstall. Export nudge at setup is the mitigation.
 
@@ -219,7 +219,7 @@ Presentation shielding: `FLAG_SECURE` (Android) / `ignoresScreenshotForRecording
 
 ### 8.3 `.pulse` File Format (ADR-015)
 
-UTF-8 JSON, independently versioned from Isar schema, PBKDF2-encrypted.
+UTF-8 JSON, independently versioned from database schema, PBKDF2-encrypted.
 
 ```json
 {
@@ -238,7 +238,7 @@ UTF-8 JSON, independently versioned from Isar schema, PBKDF2-encrypted.
 
 | | Mobile | Web Playground |
 |---|---|---|
-| Database | Isar 3.1.0+1 (encrypted, file-backed) | Isar Web / IndexedDB (unencrypted, volatile) |
+| Database | Drift with SQLCipher (encrypted, file-backed) | Drift WASM / IndexedDB (unencrypted, volatile) |
 | Encryption | PBKDF2(Master PIN, salt, 100k rounds) → AES-256 | None |
 | Durability | Persistent | Session-scoped |
 
@@ -264,12 +264,12 @@ UTF-8 JSON, independently versioned from Isar schema, PBKDF2-encrypted.
 ## 10. Platform-Specific Constraints
 
 ### Mobile-Only (all gated via `kIsWeb`)
-Panic Room · PanicRoomBloc · Projected Resilience Score · Biometric gate · Presentation shielding · `.pulse` Import · Persistent encrypted Isar · Master PIN
+Panic Room · PanicRoomBloc · Projected Resilience Score · Biometric gate · Presentation shielding · `.pulse` Import · Persistent encrypted Drift database · Master PIN
 
 ### Web-Specific
 - Max content width 1200px. Single breakpoint at 768px.
 - Session-dismissible volatile storage banner (reappears every new session; dismissal in-memory only).
-- No Isar encryption, no Master PIN, no persistent state.
+- No database encryption, no Master PIN, no persistent state.
 - A/B Scenario Forking and `.pulse` Export available.
 
 ---
@@ -319,7 +319,7 @@ All items from scaffold audit (2026-10-17). Must be resolved before feature impl
 | 7 | `lib/core/network/` (entire dir) | Delete: ApiService, LoggingInterceptor, CertificateReader, api_keys.dart, api_routes.dart. |
 | 8 | `lib/core/platform/network_info.dart` | Delete (NetworkInfo / internet_connection_checker_plus). |
 | 9 | `pubspec.yaml` | Move `bloc_test` → dev_dependencies. |
-| 10 | `pubspec.yaml` | **Add:** isar:3.1.0+1, isar_flutter_libs, path_provider, local_auth, flutter_secure_storage, cryptography:^2.9.0, cryptography_flutter:^2.3.4, uuid, go_router, isar_generator. |
+| 10 | `pubspec.yaml` | **Add:** `drift`, `drift_flutter`, `sqlcipher_flutter_libs`, `sqlite3`, `path_provider`, `local_auth`, `flutter_secure_storage`, `cryptography:^2.9.0`, `cryptography_flutter:^2.3.4`, `uuid`, `go_router`, `drift_dev`. |
 | 11 | `pubspec.yaml` | **Remove:** dio, internet_connection_checker_plus, cached_network_image, json_annotation, json_serializable. |
 
 ---

@@ -55,7 +55,7 @@ Check this before Phase 2 to avoid duplicating contracts.
 ### DI Keys
 <!-- GetIt locator is stubbed. No features registered yet. -->
 <!-- Planned registrations (injection_container.dart):
-- IsarService (singleton)
+- DatabaseService (singleton)
 - FinancialEventRepository (lazy singleton)
 - ScenarioRepository (lazy singleton)
 - SandboxBloc (factory)
@@ -65,7 +65,7 @@ Check this before Phase 2 to avoid duplicating contracts.
 ### Shared Failures
 <!-- Defined in lib/core/error/failure.dart — KEPT from scaffold: -->
 - `Failure` (abstract base, Equatable)
-- `ServerFailure` — will be repurposed as `StorageFailure` for Isar errors when needed
+- `ServerFailure` — will be repurposed as `StorageFailure` for database errors when needed
 - `InternetFailure` — kept; may surface if any future connectivity check is added
 - `BadFilterFailure` — kept; used by BaseBloc filter contract
 
@@ -86,7 +86,7 @@ Items logged during scaffold audit as breaking references or deliberate deferral
 | 7 | `lib/core/network/` (entire dir) | `ApiService` (Dio), `LoggingInterceptor`, `CertificateReader`, `api_keys.dart`, `api_routes.dart` — all network-layer files with no Pulse use. Scheduled for deletion in audit Step 2. | 2026-10-17 |
 | 8 | `lib/core/platform/network_info.dart` | `NetworkInfo`/`NetworkInfoImpl` wraps `InternetConnection` from `internet_connection_checker_plus`. Offline app has no connectivity gate. Scheduled for deletion in audit Step 2. | 2026-10-17 |
 | 9 | `pubspec.yaml` | `bloc_test` listed under `dependencies` instead of `dev_dependencies`. Move in audit Step 1. | 2026-10-17 |
-| 10 | `pubspec.yaml` | Missing: `isar`, `isar_flutter_libs`, `path_provider`, `local_auth`, `flutter_secure_storage`, `cryptography`/`pointycastle`, `uuid`, `go_router`, `isar_generator`. Add in audit Step 1. | 2026-10-17 |
+| 10 | `pubspec.yaml` | Missing: `drift`, `drift_flutter`, `sqlcipher_flutter_libs`, `sqlite3`, `path_provider`, `local_auth`, `flutter_secure_storage`, `cryptography`, `uuid`, `go_router`, `drift_dev`. Add in audit Step 1. | 2026-10-17 |
 | 11 | `pubspec.yaml` | Remove: `dio`, `internet_connection_checker_plus`, `cached_network_image`, `json_annotation`, `json_serializable`. All are network/HTTP concerns; Pulse is offline. Remove in audit Step 1. | 2026-10-17 |
 
 ---
@@ -98,6 +98,6 @@ These become follow-up tickets when the feature they affect starts.
 
 | Feature | DEFER Item | Reason | Status |
 |---------|------------|--------|--------|
-| Isar setup | Confirm Isar 3.x vs 4.x compatibility with Flutter SDK `^3.10.8` | Isar 4 (`4.0.0-dev.14`) is still pre-release and stalled. **Pin `isar: 3.1.0+1`** — last stable, supports web platform. | ✅ Resolved |
+| Database choice | Migrate from stalled Isar to Drift | Isar 4 stalled in pre-release. **Adopt Drift (`drift`, `drift_flutter`, `drift_dev`)** with `sqlcipher_flutter_libs` on mobile and Drift WASM on web (ADR-018). | ✅ Resolved |
 | Security | Choose PBKDF2 library: `cryptography` vs `pointycastle` | **Use `cryptography: ^2.9.0` + `cryptography_flutter: ^2.3.4`**. Higher-level API, actively maintained (Nov 2025), explicit WASM/Web Crypto API support, native backend (Apple CryptoKit / javax.crypto) via the Flutter companion package. | ✅ Resolved |
-| Web build | Decide if `isar_web` is included or if web uses a simpler in-memory + IndexedDB adapter | **Use `isar_web` (bundled in `isar_flutter_libs`)**. Isar 3.x has verified web platform support. `IsarService` branches on `kIsWeb` per TDD §4.1 — no separate adapter needed. | ✅ Resolved |
+| Web build | Web database adapter | **Use Drift WASM (`drift/wasm.dart` via Web Worker)** for session-scoped IndexedDB per ADR-007 / ADR-018. | ✅ Resolved |

@@ -13,8 +13,8 @@ Files retained exactly as-is. No edits needed before next feature work begins.
 | `lib/core/bloc/bloc_events.dart` | ✅ KEEP AS-IS | Generic `FetchDataEvent` / `FetchData` with `filter` and `refresh` — architecture-neutral, reusable by any Pulse BLoC. |
 | `lib/core/bloc/bloc_states.dart` | ✅ KEEP AS-IS | `FetchDataState<T>` with `Status` enum covers initial/loading/success/failure/refresh — matches TDD BLoC pattern exactly. Comment referencing "API call" is cosmetic only. |
 | `lib/core/bloc/filter.dart` | ✅ KEEP AS-IS | Abstract `Filter` + `NoFilter` — domain-neutral query filter contract used by `BaseBloc.operation()`. |
-| `lib/core/error/failure.dart` | ✅ KEEP AS-IS | `Failure`, `ServerFailure`, `InternetFailure`, `BadFilterFailure` — Equatable failure hierarchy. `ServerFailure` → rename mentally to `StorageFailure` when Isar arrives; no code change needed yet. |
-| `lib/core/error/exception.dart` | ✅ KEEP AS-IS | `ServerException` + `BadFilter` exception types — generic enough for Isar error mapping. |
+| `lib/core/error/failure.dart` | ✅ KEEP AS-IS | `Failure`, `ServerFailure`, `InternetFailure`, `BadFilterFailure` — Equatable failure hierarchy. `ServerFailure` → rename mentally to `StorageFailure` when database arrives; no code change needed yet. |
+| `lib/core/error/exception.dart` | ✅ KEEP AS-IS | `ServerException` + `BadFilter` exception types — generic enough for database error mapping. |
 | `lib/core/usecase/usecase.dart` | ✅ KEEP AS-IS | `UseCase<Type, Params>` abstract contract + `NoParams` — matches TDD §2.2 pure-function use case pattern; `fpdart` `Either` return type is correct. |
 | `lib/core/extension/string_extension.dart` | ✅ KEEP AS-IS | `.capitalizeWords()` — generic string utility, no weather content. |
 | `lib/core/presentation/theme/app_theme.dart` | ✅ KEEP AS-IS | Full Material 3 `ColorScheme` (light + dark + high/medium contrast variants) backed by Google Fonts (Nunito). No weather content. Ready for Pulse palette tuning in a future polish pass. |
@@ -90,7 +90,7 @@ These files survive but need targeted edits before or during feature work.
 // static const projectionMaxMonths = 36;
 // static const resilienceTargetMonths = 12;
 // static const pbkdf2Iterations = 100000;
-// static const isarEncryptionKeyBits = 256;
+// static const databaseEncryptionKeyBits = 256;
 // ── Spacing (keep these — valid for any Flutter app) ──
 // spacingXS…spacingXXXL  ← KEEP
 // ── Font Sizes (keep) ──
@@ -151,7 +151,7 @@ These files survive but need targeted edits before or during feature work.
 ---
 
 ### `lib/core/network/` (entire subdirectory)
-**What to change:** **Delete the entire `network/` subdirectory** when Isar is wired. Contains:
+**What to change:** **Delete the entire `network/` subdirectory** when database is wired. Contains:
 - `api_keys.dart` — OpenWeatherMap query param keys. **Delete.**
 - `api_routes.dart` — OpenWeatherMap base URLs + **hardcoded API key** (security risk even though app is FOSS). **Delete immediately** (see note below).
 - `api_service.dart` — Dio HTTP client. Pulse is offline; no HTTP client needed. **Delete.**
@@ -175,10 +175,10 @@ These files survive but need targeted edits before or during feature work.
 ### `lib/injection_container.dart`
 **What to change:**
 - Current state: clean stub (weather references removed, ready to wire Pulse features).
-- **Next session rewrite:** Register `IsarService` (singleton), `FinancialEventRepository`, `ScenarioRepository`, then `SandboxBloc` (factory) and `PanicRoomBloc` (factory, mobile-only).
+- **Next session rewrite:** Register `DatabaseService` (singleton), `FinancialEventRepository`, `ScenarioRepository`, then `SandboxBloc` (factory) and `PanicRoomBloc` (factory, mobile-only).
 - Do **not** register `ApiService`, `Dio`, `InternetConnection`, or `NetworkInfo` — Pulse has no network layer.
 
-**When:** Isar + first feature session.
+**When:** Database + first feature session.
 
 ---
 
@@ -197,17 +197,18 @@ Add to `pubspec.yaml` → `dependencies:`.
 
 | Package | Purpose | TDD / ADR Reference |
 |---------|---------|---------------------|
-| `isar: ^3.x` | Primary local database for Scenario + FinancialEvent storage | TDD §4.1 |
-| `isar_flutter_libs: ^3.x` | Native Isar binaries for iOS/Android | TDD §4.1 |
-| `isar_web: ^3.x` *(optional)* | IndexedDB backend for Flutter Web session | TDD §4.1 web |
-| `path_provider: ^2.x` | Resolve device document directory for Isar DB path on mobile | TDD §4.1 |
+| `drift: ^2.24.2` | Primary local database for Scenario + FinancialEvent storage | ADR-018, TDD §4.1 |
+| `drift_flutter: ^0.2.4` | Flutter integration helper for Drift (paths, isolates) | ADR-018 |
+| `sqlcipher_flutter_libs: ^0.5.24` | Native SQLCipher encryption binaries for iOS/Android/desktop | ADR-018 |
+| `sqlite3: ^2.5.7` | Dart SQLite3 bindings | ADR-018 |
+| `path_provider: ^2.x` | Resolve device document directory for DB path on mobile | TDD §4.1 |
 | `local_auth: ^2.x` | Biometric authentication on foreground transitions | TDD §4.3 |
 | `flutter_secure_storage: ^9.x` | Store Master PIN hash / session token; `FLAG_SECURE` on Android | TDD §4.3 |
-| `cryptography: ^2.x` or `pointycastle: ^3.x` | PBKDF2 (min 100,000 iterations, SHA-256) key derivation | TDD §4.2, ADR-004 |
+| `cryptography: ^2.9.0` + `cryptography_flutter: ^2.3.4` | PBKDF2 (min 100,000 iterations, SHA-256) key derivation | TDD §4.2, ADR-004 |
 | `uuid: ^4.x` | Generate UUID v4 for `FinancialEvent`, `Scenario`, `FinancialShock` entity IDs | TDD §2.1 |
 | `go_router: ^14.x` | Declarative routing (Onboarding → Sandbox → Panic Room) | TDD §3, ADR-007 |
 
-> 📌 **Isar version note:** Verify latest Isar 3.x (or Isar 4 if available) compatible with your Flutter SDK (`^3.10.8`) before pinning. Check [pub.dev/packages/isar](https://pub.dev/packages/isar).
+> 📌 **Database choice note:** Drift with `sqlcipher_flutter_libs` replaces legacy Isar per ADR-018. Web uses `drift/wasm.dart` backed by IndexedDB.
 
 ---
 
@@ -220,8 +221,8 @@ These packages have zero use in an offline-first app with no API calls.
 | `dio: ^5.4.3+1` | `dependencies` | HTTP client — Pulse makes no network requests. |
 | `internet_connection_checker_plus: ^2.3.0` | `dependencies` | Network reachability gate — irrelevant for offline app. |
 | `cached_network_image: ^3.3.1` | `dependencies` | Remote image caching — no remote images in Pulse. |
-| `json_annotation: ^4.9.0` | `dependencies` | JSON serialization annotation — Isar uses its own code-gen (`isar_generator`), not `json_serializable`. |
-| `json_serializable: ^6.8.0` | `dev_dependencies` | JSON code-gen — replaced by `isar_generator`. |
+| `json_annotation: ^4.9.0` | `dependencies` | JSON serialization annotation — not used for entities; Drift uses `drift_dev`. |
+| `json_serializable: ^6.8.0` | `dev_dependencies` | JSON code-gen — replaced by `drift_dev` for DB and standard Dart for `.pulse` JSON. |
 | `bloc_test: ^10.0.0` | `dependencies` | ⚠️ **Wrong section** — should be `dev_dependencies`. Move it, don't delete. |
 
 **Packages to keep:**
@@ -234,7 +235,8 @@ These packages have zero use in an offline-first app with no API calls.
 | `equatable: ^2.0.5` | Entities and states extend `Equatable`. |
 | `intl: ^0.20.2` | `DateFormat` in `DateUtil` — still needed for month/year labels on chart axis. |
 | `google_fonts: ^6.2.1` | `AppTheme` uses `GoogleFonts.nunitoTextTheme()`. |
-| `build_runner: ^2.4.9` | Still needed — `isar_generator` requires it. |
+| `build_runner: ^2.4.9` | Still needed — `drift_dev` requires it. |
+| `drift_dev: ^2.24.2` | Code generation for Drift database tables and queries. |
 | `mockito: ^5.4.4` | Unit test mocking — keep in `dev_dependencies`. |
 | `flutter_test` | Flutter test SDK — keep. |
 | `flutter_lints: ^6.0.0` | Linting — keep. |
@@ -248,8 +250,8 @@ Ordered sequence for next sessions. Each step is a discrete, reviewable unit of 
 ### Step 1 — pubspec.yaml cleanup (≤30 min)
 1. Remove `dio`, `internet_connection_checker_plus`, `cached_network_image`, `json_annotation`, `json_serializable`.
 2. Move `bloc_test` from `dependencies` → `dev_dependencies`.
-3. Add `isar`, `isar_flutter_libs`, `path_provider`, `local_auth`, `flutter_secure_storage`, `cryptography` (or `pointycastle`), `uuid`, `go_router`.
-4. Add `isar_generator` to `dev_dependencies`.
+3. Add `drift`, `drift_flutter`, `sqlcipher_flutter_libs`, `sqlite3`, `path_provider`, `local_auth`, `flutter_secure_storage`, `cryptography`, `cryptography_flutter`, `uuid`, `go_router`.
+4. Add `drift_dev` to `dev_dependencies`.
 5. Run `flutter pub get` and confirm no version conflicts.
 
 ### Step 2 — Delete dead `lib/core/` code (≤20 min)
@@ -266,7 +268,7 @@ Ordered sequence for next sessions. Each step is a discrete, reviewable unit of 
 
 ### Step 4 — Domain layer: Entities (TDD §2.1) — write tests first
 For each entity (`FinancialEvent`, `Scenario`, `FinancialShock`, `ProjectionNode`, `ResilienceScore`):
-1. Write entity class (plain Dart + `Equatable`, Isar `@collection` annotation).
+1. Write entity class (plain Dart + `Equatable`, clean domain decoupled from database).
 2. Write unit test asserting equality and field constraints.
 3. No BLoC, no repository — domain only.
 
@@ -278,15 +280,15 @@ For each use case (`AddFinancialEvent`, `RemoveFinancialEvent`, `ForkScenario`, 
 2. Write unit test with mock repository.
 3. `CalculateProjection` is a **pure function** — test it in isolation with zero mocks.
 
-### Step 6 — Data layer: Isar database + repositories
-1. Create `IsarService` singleton: opens DB, handles `kIsWeb` branch (no encryption key on web).
-2. Mobile: derive 256-bit key from Master PIN via PBKDF2 before opening Isar.
-3. Implement `FinancialEventRepositoryImpl` and `ScenarioRepositoryImpl` backed by Isar.
+### Step 6 — Data layer: Drift database + repositories
+1. Create `DatabaseService` singleton: opens DB, handles `kIsWeb` branch (WASM IndexedDB on web, SQLCipher on mobile).
+2. Mobile: derive 256-bit key from Master PIN via PBKDF2 before opening Drift with SQLCipher.
+3. Implement `FinancialEventRepositoryImpl` and `ScenarioRepositoryImpl` backed by Drift.
 4. Write integration tests for each repository.
 
 ### Step 7 — Wire `injection_container.dart`
 Register in this order:
-1. `IsarService` (singleton, `async` init)
+1. `DatabaseService` (singleton, lazy/lifecycle-gated)
 2. `FinancialEventRepository` (lazy singleton)
 3. `ScenarioRepository` (lazy singleton)
 4. `SandboxBloc` (factory)
@@ -320,7 +322,7 @@ Register in this order:
 ### Step 12 — Web build
 1. Verify `kIsWeb` banner renders correctly.
 2. Confirm Panic Room, Resilience Score, and biometric gate are absent from web build.
-3. Verify IndexedDB persistence works within a session via Isar Web.
+3. Verify IndexedDB persistence works within a session via Drift WASM.
 4. Test ephemeral PIN export → mobile import round-trip.
 
 ---

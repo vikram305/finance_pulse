@@ -1,7 +1,7 @@
 # Pulse V1 — Implementation Spec
 
-> **Synthesized from:** Final PRD (v1.0), ADRs 001–017, ADR-DS-001, TDD, Project Status, Context.md  
-> **Date:** 2026-10-24  
+> **Synthesized from:** Final PRD (v1.0), ADRs 001–018, ADR-DS-001, TDD, Project Status, Context.md  
+> **Date:** 2026-10-25  
 > **Status:** Ready for implementation
 
 ---
@@ -130,7 +130,7 @@ The web version (Flutter WASM) acts as a zero-friction acquisition funnel: users
 - **`Scenario`** entity: UUID, name, ordered list of `FinancialEvent` IDs. The BLoC state holds `Map<ScenarioId, Scenario>`. Data model is unbounded; the V1 cap of 2 is enforced in `SandboxBloc` only (not in the entity).
 - **Scenario duplication is always a deep copy.** New UUIDs generated for all cloned events. Shallow copy (shared references) is explicitly rejected — it silently corrupts both scenarios on edit.
 - **`FinancialShock`** entity: UUID, label, `List<FinancialEvent>` of additive deltas. App-level scope (not Scenario-scoped). Shocks are applied at calculation time by flattening them into the event list; the `Scenario` entity is never mutated.
-- **V1 `FinancialShock` catalogue** is a predefined constant set — no Isar, no repository, no CRUD. Four shocks:
+- **V1 `FinancialShock` catalogue** is a predefined constant set — no database storage, no repository, no CRUD. Four shocks:
   - `FinancialShocks.jobLoss({required double monthlyNetIncome})` — static factory method; makes income → ₹0 for months 0–5. Relative so it scales to any income level.
   - `FinancialShocks.medicalEmergency` — static final; ₹2,00,000 one-time expense, month 0.
   - `FinancialShocks.rentSpike` — static final; +₹12,000/mo for full projection window.
@@ -156,20 +156,21 @@ The web version (Flutter WASM) acts as a zero-friction acquisition funnel: users
 ### Dependency Injection & Navigation
 
 - **DI container:** `get_it`. Manages construction and lifetime of repositories, services, and use cases. BLoC state is managed by `flutter_bloc`'s `BlocProvider`, not directly by GetIt.
-- **Platform gating at registration time:** `if (!kIsWeb)` guards on `PanicRoomBloc` and the encrypted `IsarService` registration. Dead-code branches are tree-shaken by the Flutter compiler.
+- **Platform gating at registration time:** `if (!kIsWeb)` guards on `PanicRoomBloc` and the encrypted `DatabaseService` registration. Dead-code branches are tree-shaken by the Flutter compiler.
 - **Navigation:** `go_router`. Three named routes: `/onboarding`, `/sandbox`, `/panic-room`. The `/panic-room` route has a GoRouter redirect guard: if `kIsWeb`, redirect to `/sandbox`.
 
 ### Storage & Database
 
-- **Database:** Isar `3.1.0+1` (pinned stable release). Used for both mobile (encrypted file-backed) and web (IndexedDB-backed via `isar_web`, unencrypted).
-- **`IsarService`** branches on `kIsWeb` for encrypted vs. unencrypted open — no separate adapter or package.
-- **Mobile:** PBKDF2(Master PIN, salt, 100k rounds, SHA-256) → AES-256 encryption key → passed to Isar at `encryptionKey` parameter. No plaintext financial data ever written to disk.
-- **Web:** No encryption layer. IndexedDB storage is unencrypted and volatile. Session-dismissible banner shown every new session.
+- **Database:** Drift (`drift`, `drift_flutter`, `drift_dev`) (ADR-018). Used for both mobile (encrypted SQLite file-backed) and web (IndexedDB-backed via `drift/wasm.dart` Web Worker, unencrypted).
+- **Schema:** Relational tables `scenarios` and `financial_events` (`scenario_id` foreign key referencing `scenarios(id) ON DELETE CASCADE` and integer `order_index`).
+- **`DatabaseService`** branches on `kIsWeb` for encrypted vs. unencrypted open. Web opens immediately unencrypted; Mobile opens lazily once Master PIN PBKDF2 key is derived.
+- **Mobile:** PBKDF2(Master PIN, salt, 100k rounds, SHA-256) → AES-256 encryption key → full database page encryption via `sqlcipher_flutter_libs`. No plaintext financial data ever written to disk.
+- **Web:** No encryption layer. IndexedDB storage is unencrypted and volatile. Session-dismissible banner shown every new session. Ephemeral export PIN is never stored in the browser.
 
 ### Encryption & Portability
 
 - **PBKDF2 library:** `cryptography ^2.9.0` + `cryptography_flutter ^2.3.4`. Uses native backends (Apple CryptoKit / javax.crypto) and supports WASM/Web Crypto API.
-- **`.pulse` file format:** UTF-8 JSON, PBKDF2-encrypted, independently versioned from the Isar schema. V1 envelope:
+- **`.pulse` file format:** UTF-8 JSON, PBKDF2-encrypted, independently versioned from the database schema. V1 envelope:
   ```json
   {
     "version": 1,
@@ -179,7 +180,7 @@ The web version (Flutter WASM) acts as a zero-friction acquisition funnel: users
                  "startMonth": 0, "endMonth": 11, "amount": 15000.0, "isBaseline": false }]
   }
   ```
-- **Mobile Master PIN setup:** Deferred to the moment of the first Isar write-commit (not at app open). `PinEntryDialog(mode: PinMode.setup)` — two fields (PIN + confirm) + export nudge copy.
+- **Mobile Master PIN setup:** Deferred to the moment of the first database write-commit (not at app open). `PinEntryDialog(mode: PinMode.setup)` — two fields (PIN + confirm) + export nudge copy.
 - **Biometric fallback:** If `local_auth` fails, fall back to `PinEntryDialog(mode: PinMode.entry)`. Biometric is a convenience layer; the Master PIN is the ultimate backstop.
 - **Ephemeral web export:** `PinEntryDialog(mode: PinMode.webExport)` — one field + ephemeral copy. PIN derived via PBKDF2, `.pulse` file downloaded, PIN immediately discarded.
 - **Forgotten PIN:** No server-side recovery. Wipe + reinstall. Export nudge at PIN setup is the mitigation.
@@ -228,7 +229,7 @@ All items must be resolved before feature implementation begins:
 | 7 | `lib/core/network/` (entire dir) | Delete: `ApiService`, `LoggingInterceptor`, `CertificateReader`, `api_keys.dart`, `api_routes.dart`. |
 | 8 | `lib/core/platform/network_info.dart` | Delete (`NetworkInfo` / `internet_connection_checker_plus`). |
 | 9 | `pubspec.yaml` | Move `bloc_test` → `dev_dependencies`. |
-| 10 | `pubspec.yaml` | **Add:** `isar: 3.1.0+1`, `isar_flutter_libs`, `path_provider`, `local_auth`, `flutter_secure_storage`, `cryptography: ^2.9.0`, `cryptography_flutter: ^2.3.4`, `uuid`, `go_router`, `isar_generator`. |
+| 10 | `pubspec.yaml` | **Add:** `drift: ^2.24.2`, `drift_flutter: ^0.2.4`, `sqlcipher_flutter_libs: ^0.5.24`, `sqlite3: ^2.5.7`, `path_provider`, `local_auth`, `flutter_secure_storage`, `cryptography: ^2.9.0`, `cryptography_flutter: ^2.3.4`, `uuid`, `go_router`, `drift_dev: ^2.24.2`. |
 | 11 | `pubspec.yaml` | **Remove:** `dio`, `internet_connection_checker_plus`, `cached_network_image`, `json_annotation`, `json_serializable`. |
 
 ### Planned Implementation Order
@@ -260,7 +261,7 @@ Tests must cover **external, observable behaviour** of a module — not its inte
 | **`ResilienceScore` formula** | P0 | Unit test the formula in isolation: known `ProjectionNode` arrays → expected score. |
 | **`.pulse` serialization (V1 JSON schema)** | P1 | Round-trip test: `Scenario` + events → serialize → deserialize → equality check. |
 | **PBKDF2 encryption round-trip** | P1 | Encrypt with PIN → decrypt with same PIN → plaintext equality. |
-| **`IsarService` web/mobile branch** | P1 | Integration test via the actual GetIt setup, using the real `kIsWeb` platform. |
+| **`DatabaseService` web/mobile branch** | P1 | Integration test via the actual GetIt setup, using the real `kIsWeb` platform. |
 | **GoRouter guards** | P1 | Test that `kIsWeb` redirect on `/panic-room` routes to `/sandbox`. |
 
 ### Architecture Mandate
@@ -290,7 +291,7 @@ The Domain layer (entities, `ProjectionEngine`, use cases) is always implemented
 | Screen reader narration of `TrajectoryChart` | Marked decorative for V1; meaningful narration is a post-MVP roadmap item |
 | Categorised past-expense pie charts | The product is forward-looking simulation, not backward-looking accounting |
 | `PlatformCapabilities` runtime abstraction over `kIsWeb` | `kIsWeb` is compile-time and tree-shaken — a runtime abstraction adds indirection for a boundary that cannot change (ADR-011) |
-| Isar 4.x | Pre-release, stalled as of decision date. Pinned to `isar: 3.1.0+1`. |
+| Stalled database engines (Isar 3.x / 4.x) | Replaced by Drift with SQLCipher and WASM web support (ADR-018). |
 
 ---
 
@@ -299,6 +300,6 @@ The Domain layer (entities, `ProjectionEngine`, use cases) is always implemented
 - **Domain vocabulary is canonical.** The glossary in `Context.md` defines every term used in code, UI, and tests. The term "Projected Resilience" is a UI label — never "Resilience Score". The term "FinancialEvent" is never "transaction" or "entry". The term "Scenario" is never "Plan" or "Timeline".
 - **Open-source readiness is a first-class constraint.** The API key currently hardcoded in `lib/core/network/api_routes.dart` must be deleted and rotated before the repository is made public (tech debt item #1). No secrets may be committed.
 - **The web build is a funnel, not the product.** Every design and implementation decision for the web Playground should be evaluated through this lens. Its job is to create user investment and then drive mobile downloads. The absence of the Panic Room and Projected Resilience Score on web is intentional and must not be "fixed."
-- **The 10-Second Hook is a non-negotiable product mechanic.** No friction may be introduced before the user sees a populated trajectory chart. The Master PIN setup must remain deferred to the first Isar write-commit.
+- **The 10-Second Hook is a non-negotiable product mechanic.** No friction may be introduced before the user sees a populated trajectory chart. The Master PIN setup must remain deferred to the first database write-commit.
 - **`lib/features/` is currently empty.** The scaffold is clean and ready for Phase 2 (Domain layer).
-- **Isar migration path:** If Isar 3.x is abandoned or Isar 4 reaches stable, migration to drift remains feasible — domain entities are clean Pure Dart objects decoupled from Isar annotations via the repository pattern.
+- **Database architecture:** Drift provides type-safe SQLite with SQLCipher full-disk encryption on mobile and WASM IndexedDB on web. Domain entities are clean Pure Dart objects decoupled from Drift table classes via the repository pattern (ADR-018).
