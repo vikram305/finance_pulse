@@ -1,4 +1,3 @@
-import 'package:finance_pulse/domain/entities/financial_event.dart';
 import 'package:finance_pulse/domain/entities/scenario.dart';
 import 'package:flutter_test/flutter_test.dart';
 
@@ -40,31 +39,6 @@ void main() {
     test('instances differing by eventIds are not equal', () {
       const other = Scenario(id: 's1', name: 'Base Plan', eventIds: ['e1']);
       expect(tScenario, isNot(equals(other)));
-    });
-
-    test('instances differing by events are not equal', () {
-      const eventA = FinancialEvent(
-        id: 'e1',
-        name: 'Salary',
-        polarity: FinancialPolarity.income,
-        startMonth: 0,
-        endMonth: 11,
-        amount: 50000.0,
-        isBaseline: true,
-      );
-      final s1 = const Scenario(
-        id: 's1',
-        name: 'Base Plan',
-        eventIds: ['e1'],
-        events: [eventA],
-      );
-      final s2 = const Scenario(
-        id: 's1',
-        name: 'Base Plan',
-        eventIds: ['e1'],
-        events: [],
-      );
-      expect(s1, isNot(equals(s2)));
     });
 
     test('copyWith creates a copy with updated fields', () {

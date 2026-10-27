@@ -1,3 +1,4 @@
+import 'package:finance_pulse/core/constants/app_strings.dart';
 import 'package:finance_pulse/domain/constants/financial_shocks.dart';
 import 'package:finance_pulse/domain/entities/financial_event.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -8,7 +9,9 @@ void main() {
       'jobLoss(monthlyNetIncome: 80000) returns a shock whose event has amount = 80000',
       () {
         final shock = FinancialShocks.jobLoss(monthlyNetIncome: 80000);
+        expect(shock.label, equals(AppStrings.shockJobLoss));
         expect(shock.events.length, equals(1));
+        expect(shock.events.first.name, equals(AppStrings.shockJobLoss));
         expect(shock.events.first.amount, equals(80000.0));
         expect(shock.events.first.polarity, equals(FinancialPolarity.income));
         expect(shock.events.first.startMonth, equals(0));
@@ -26,7 +29,12 @@ void main() {
 
     test('medicalEmergency has amount = 200000 at month 0', () {
       final shock = FinancialShocks.medicalEmergency;
+      expect(shock.label, equals(AppStrings.shockMedicalEmergency));
       expect(shock.events.length, equals(1));
+      expect(
+        shock.events.first.name,
+        equals(AppStrings.shockMedicalEmergency),
+      );
       expect(shock.events.first.amount, equals(200000.0));
       expect(shock.events.first.startMonth, equals(0));
       expect(shock.events.first.endMonth, equals(0));
@@ -37,7 +45,9 @@ void main() {
       'rentSpike has amount = 12000 for full projection window (months 0-35)',
       () {
         final shock = FinancialShocks.rentSpike;
+        expect(shock.label, equals(AppStrings.shockRentSpike));
         expect(shock.events.length, equals(1));
+        expect(shock.events.first.name, equals(AppStrings.shockRentSpike));
         expect(shock.events.first.amount, equals(12000.0));
         expect(shock.events.first.startMonth, equals(0));
         expect(shock.events.first.endMonth, equals(35));
@@ -47,7 +57,9 @@ void main() {
 
     test('emiShock has amount = 15000 with endMonth = 23 (24 months)', () {
       final shock = FinancialShocks.emiShock;
+      expect(shock.label, equals(AppStrings.shockEmiShock));
       expect(shock.events.length, equals(1));
+      expect(shock.events.first.name, equals(AppStrings.shockEmiShock));
       expect(shock.events.first.amount, equals(15000.0));
       expect(shock.events.first.startMonth, equals(0));
       expect(shock.events.first.endMonth, equals(23));

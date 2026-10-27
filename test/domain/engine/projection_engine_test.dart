@@ -6,12 +6,6 @@ import 'package:finance_pulse/domain/entities/scenario.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 void main() {
-  late ProjectionEngine engine;
-
-  setUp(() {
-    engine = const ProjectionEngine();
-  });
-
   group('ProjectionEngine - Projection Calculation', () {
     const tIncomeEvent = FinancialEvent(
       id: 'e-income',
@@ -39,14 +33,18 @@ void main() {
         const scenario = Scenario(
           id: 's1',
           name: 'Income Plan',
-          events: [tIncomeEvent],
+          eventIds: ['e-income'],
         );
 
         const initialBalance = 100000.0;
+        final engine = ProjectionEngine.withEvents(
+          initialBalance: initialBalance,
+          events: const [tIncomeEvent],
+        );
+
         final nodes = engine.calculate(
           scenario,
           const [],
-          initialBalance: initialBalance,
           windowMonths: 12,
         );
 
@@ -73,14 +71,18 @@ void main() {
       const scenario = Scenario(
         id: 's1',
         name: 'Expense Plan',
-        events: [tExpenseEvent],
+        eventIds: ['e-expense'],
       );
 
       const initialBalance = 100000.0;
+      final engine = ProjectionEngine.withEvents(
+        initialBalance: initialBalance,
+        events: const [tExpenseEvent],
+      );
+
       final nodes = engine.calculate(
         scenario,
         const [],
-        initialBalance: initialBalance,
         windowMonths: 12,
       );
 
@@ -110,13 +112,17 @@ void main() {
         const scenario = Scenario(
           id: 's1',
           name: 'Window Plan',
-          events: [windowEvent],
+          eventIds: ['e-window'],
+        );
+
+        final engine = ProjectionEngine.withEvents(
+          initialBalance: 10000.0,
+          events: const [windowEvent],
         );
 
         final nodes = engine.calculate(
           scenario,
           const [],
-          initialBalance: 10000.0,
           windowMonths: 6,
         );
 
@@ -154,13 +160,17 @@ void main() {
       const scenario = Scenario(
         id: 's1',
         name: 'Overlap Plan',
-        events: [tIncomeEvent, tExpenseEvent],
+        eventIds: ['e-income', 'e-expense'],
+      );
+
+      final engine = ProjectionEngine.withEvents(
+        initialBalance: 0.0,
+        events: const [tIncomeEvent, tExpenseEvent],
       );
 
       final nodes = engine.calculate(
         scenario,
         const [],
-        initialBalance: 0.0,
         windowMonths: 12,
       );
 
@@ -173,21 +183,24 @@ void main() {
     });
 
     test('windowMonths = 37 is clamped to 36; output has exactly 36 nodes', () {
-      const scenario = Scenario(id: 's1', name: 'Clamp Max', events: []);
+      const scenario = Scenario(id: 's1', name: 'Clamp Max');
+      const engine = ProjectionEngine();
       final nodes = engine.calculate(scenario, const [], windowMonths: 37);
       expect(nodes.length, equals(36));
       expect(nodes.last.monthIndex, equals(35));
     });
 
     test('windowMonths = 0 is clamped to 1; output has exactly 1 node', () {
-      const scenario = Scenario(id: 's1', name: 'Clamp Min', events: []);
+      const scenario = Scenario(id: 's1', name: 'Clamp Min');
+      const engine = ProjectionEngine();
       final nodes = engine.calculate(scenario, const [], windowMonths: 0);
       expect(nodes.length, equals(1));
       expect(nodes.first.monthIndex, equals(0));
     });
 
     test('windowMonths = -5 is clamped to 1; output has exactly 1 node', () {
-      const scenario = Scenario(id: 's1', name: 'Clamp Negative', events: []);
+      const scenario = Scenario(id: 's1', name: 'Clamp Negative');
+      const engine = ProjectionEngine();
       final nodes = engine.calculate(scenario, const [], windowMonths: -5);
       expect(nodes.length, equals(1));
     });
@@ -198,13 +211,17 @@ void main() {
         const scenario = Scenario(
           id: 's1',
           name: 'Emergency Test',
-          events: [tIncomeEvent],
+          eventIds: ['e-income'],
+        );
+
+        final engine = ProjectionEngine.withEvents(
+          initialBalance: 300000.0,
+          events: const [tIncomeEvent],
         );
 
         final nodes = engine.calculate(
           scenario,
           [FinancialShocks.medicalEmergency],
-          initialBalance: 300000.0,
           windowMonths: 12,
         );
 
@@ -229,14 +246,18 @@ void main() {
         const scenario = Scenario(
           id: 's1',
           name: 'Job Loss Test',
-          events: [tIncomeEvent], // 50000 income months 0-11
+          eventIds: ['e-income'], // 50000 income months 0-11
         );
 
         final jobLossShock = FinancialShocks.jobLoss(monthlyNetIncome: 50000.0);
+        final engine = ProjectionEngine.withEvents(
+          initialBalance: 100000.0,
+          events: const [tIncomeEvent],
+        );
+
         final nodes = engine.calculate(
           scenario,
           [jobLossShock],
-          initialBalance: 100000.0,
           windowMonths: 12,
         );
 
@@ -279,12 +300,10 @@ void main() {
     test(
       'scenario entity is not mutated after calculate is called with shocks',
       () {
-        const originalEvents = [tIncomeEvent];
         const scenario = Scenario(
           id: 's1',
           name: 'Immutable Scenario',
           eventIds: ['e-income'],
-          events: originalEvents,
         );
 
         final shocks = [
@@ -292,24 +311,28 @@ void main() {
           FinancialShocks.rentSpike,
         ];
 
+        final engine = ProjectionEngine.withEvents(
+          events: const [tIncomeEvent],
+        );
+
         engine.calculate(scenario, shocks, windowMonths: 12);
 
-        expect(scenario.events, equals(originalEvents));
         expect(scenario.eventIds, equals(['e-income']));
         expect(scenario.name, equals('Immutable Scenario'));
+        expect(scenario.id, equals('s1'));
       },
     );
 
     test(
       'empty scenario (no events): all nodes have netCashFlow = 0, endingBalance = initialBalance',
       () {
-        const scenario = Scenario(id: 's1', name: 'Empty Plan', events: []);
+        const scenario = Scenario(id: 's1', name: 'Empty Plan');
         const initialBalance = 75000.0;
+        const engine = ProjectionEngine(initialBalance: initialBalance);
 
         final nodes = engine.calculate(
           scenario,
           const [],
-          initialBalance: initialBalance,
           windowMonths: 12,
         );
 
@@ -323,26 +346,16 @@ void main() {
       },
     );
 
-    test(
-      'accepts external events list parameter overriding scenario.events',
-      () {
-        const scenario = Scenario(id: 's1', name: 'Empty Scenario');
-        final nodes = engine.calculate(
-          scenario,
-          const [],
-          events: [tIncomeEvent],
-          initialBalance: 0.0,
-          windowMonths: 1,
-        );
-        expect(nodes.first.netCashFlow, equals(50000.0));
-      },
-    );
-
     test('performance: completes calculate for 36 months in <= 16.6ms', () {
       const scenario = Scenario(
         id: 's1',
         name: 'Perf Test',
-        events: [tIncomeEvent, tExpenseEvent],
+        eventIds: ['e-income', 'e-expense'],
+      );
+
+      final engine = ProjectionEngine.withEvents(
+        initialBalance: 500000.0,
+        events: const [tIncomeEvent, tExpenseEvent],
       );
 
       final shocks = [
@@ -356,7 +369,6 @@ void main() {
       final nodes = engine.calculate(
         scenario,
         shocks,
-        initialBalance: 500000.0,
         windowMonths: 36,
       );
       stopwatch.stop();
@@ -367,6 +379,8 @@ void main() {
   });
 
   group('ProjectionEngine - ResilienceScore Calculation', () {
+    const engine = ProjectionEngine();
+
     test(
       'scenario where balance goes negative at month 3 -> runway = 3 -> score = 25.0',
       () {
