@@ -10,9 +10,10 @@ AI never loads this file — human references it and tells AI what's relevant.
 
 ### ✅ Completed
 - Scaffold audit & cleanup — DONE (Issue 01: weather artefacts removed, pubspec dependencies updated for Drift/cryptography, CI passing for tests, analyze, apk, and web).
+- Domain Entities & Projection Engine — DONE (Issue 02: pure Dart entities FinancialEvent, Scenario, ProjectionNode, ResilienceScore, FinancialShock, predefined shock catalogue, ProjectionEngine O(N×M) calculation engine, CalculateResilienceScore use case, 100% test coverage).
 
 ### 🔄 In Progress
-<!-- Ready for next ticket: Issue 02 (Domain Entities & Projection Engine) -->
+<!-- Ready for next ticket: Issue 03 (SandboxBloc TDD) -->
 
 ### 📋 Planned
 - Sandbox (Onboarding + FinancialEvent CRUD + ProjectionEngine + TimelineChart)
@@ -28,14 +29,11 @@ Things built in one feature that other features can reuse.
 Check this before Phase 2 to avoid duplicating contracts.
 
 ### Entities
-<!-- None defined yet. Domain layer is next. -->
-<!-- Planned entities (TDD §2.1):
-- FinancialEvent — UUID, name, polarity, startMonth, endMonth, amount, isBaseline
-- Scenario — UUID, name, List<FinancialEvent IDs>
-- FinancialShock — UUID, label, List<FinancialEvent deltas>
-- ProjectionNode — monthIndex, startingBalance, netCashFlow, endingBalance, activeEventIds
-- ResilienceScore — scenarioId, score (0–100), computed from ProjectionNode runway
--->
+- `FinancialEvent` (`lib/domain/entities/financial_event.dart`): UUID, name, polarity (`income`|`expense`), startMonth, endMonth, amount, isBaseline.
+- `Scenario` (`lib/domain/entities/scenario.dart`): UUID, name, eventIds (ordered `List<String>`).
+- `FinancialShock` (`lib/domain/entities/financial_shock.dart`): UUID/key, label, events (`List<FinancialEvent>`). Predefined catalogue in `lib/domain/constants/financial_shocks.dart`.
+- `ProjectionNode` (`lib/domain/entities/projection_node.dart`): monthIndex, startingBalance, netCashFlow, endingBalance, activeEventIds.
+- `ResilienceScore` (`lib/domain/entities/resilience_score.dart`): scenarioId, score (0–100) derived from runway months against a 12-month ceiling.
 
 ### BLoCs
 <!-- None provided at app level yet. -->
@@ -52,7 +50,7 @@ Check this before Phase 2 to avoid duplicating contracts.
 -->
 
 ### DI Keys
-<!-- GetIt locator is stubbed. No features registered yet. -->
+- `CalculateResilienceScore` (lazy singleton) — pure domain resilience score evaluation usecase.
 <!-- Planned registrations (injection_container.dart):
 - DatabaseService (singleton)
 - FinancialEventRepository (lazy singleton)

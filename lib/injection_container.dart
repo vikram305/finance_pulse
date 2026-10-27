@@ -1,5 +1,7 @@
 import 'package:get_it/get_it.dart';
 
+import 'domain/usecases/calculate_resilience_score.dart';
+
 final locator = GetIt.instance;
 
 /// Registers all app-level dependencies.
@@ -15,9 +17,15 @@ Future<void> init() async {
   // — Helpers & Core —
   // (add DateHelper, etc. when first feature needs them)
 
+  // — Domain UseCases —
+  locator.registerLazySingleton<CalculateResilienceScore>(
+    () => const CalculateResilienceScore(),
+  );
+
   // — Feature: Sandbox —
   // locator.registerFactory(() => SandboxBloc(locator()));
 
   // — Feature: Panic Room —
   // locator.registerFactory(() => PanicRoomBloc(locator()));
 }
+
