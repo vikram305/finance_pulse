@@ -1,6 +1,8 @@
 import "package:flutter/material.dart";
 import "package:google_fonts/google_fonts.dart";
 
+import "pulse_theme.dart";
+
 class AppTheme {
   // final TextTheme textTheme;
 
@@ -58,7 +60,7 @@ class AppTheme {
   }
 
   ThemeData light() {
-    return theme(lightScheme());
+    return PulseTheme.light();
   }
 
   static ColorScheme lightMediumContrastScheme() {
@@ -223,7 +225,7 @@ class AppTheme {
   }
 
   ThemeData dark() {
-    return theme(darkScheme());
+    return PulseTheme.dark();
   }
 
   static ColorScheme darkMediumContrastScheme() {

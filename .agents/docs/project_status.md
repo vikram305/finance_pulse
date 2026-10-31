@@ -14,9 +14,10 @@ AI never loads this file — human references it and tells AI what's relevant.
 - SandboxBloc (TDD) — DONE (Issue 03: SandboxBloc, SandboxState, SandboxEvent, Strawman generation on init, Event CRUD, A/B Scenario operations with deep-copy & 2-scenario cap, projection recalculation on every state change, GetIt factory registration, 100% test coverage).
 - PanicRoomBloc (TDD) — DONE (Issue 04: PanicRoomBloc, PanicRoomState, PanicRoomEvent, dynamic jobLoss construction, additive shock application without mutating Scenarios, survival months calculation, mobile-only !kIsWeb factory registration, 100% test coverage).
 - DI Container & Navigation Shell — DONE (Issue 05: GetIt wiring for ProjectionEngine, SandboxBloc, mobile-only PanicRoomBloc, GoRouter config with /onboarding, /sandbox, /panic-room routes and platform/scenario guards, MaterialApp.router integration, 100% test coverage).
+- Design System Foundation — DONE (Issue 06: PulseTheme dark/light Material 3 themes, ADR-DS-001 design tokens for PulseColors, PulseSpacing, PulseMotion, PulseTextStyles with Inter & JetBrains Mono, core presentation primitives PulseBottomSheet with glassmorphism, PulseEmptyState line-art, PulseTapTarget with 48x48 min bounds & hover glow, PulseWebLayout with 1200px max width and 768px breakpoint, PulseNoiseOverlay 3-5% OLED grain, 100% test coverage with WCAG AA contrast & 4 accessibility guidelines).
 
 ### 🔄 In Progress
-<!-- Ready for next ticket: Issue 06 (Design System Foundation) / Issue 07 (Onboarding Screen) -->
+<!-- Ready for next ticket: Issue 07 (Onboarding Screen) -->
 
 ### 📋 Planned
 - Sandbox (Onboarding + FinancialEvent CRUD + ProjectionEngine + TimelineChart)
@@ -58,6 +59,18 @@ Check this before Phase 2 to avoid duplicating contracts.
 - FinancialEventRepository (lazy singleton)
 - ScenarioRepository (lazy singleton)
 -->
+
+### Design Tokens & Primitives
+- `PulseTheme` (`lib/core/presentation/theme/pulse_theme.dart`): `PulseTheme.dark()` (default), `PulseTheme.light()` with WCAG AA-adjusted indigo primary, `PulseThemeExtension` for polarity & semantic tokens.
+- `PulseColors` (`lib/core/presentation/theme/pulse_colors.dart`): Primary Deep Indigo, Secondary Amber, Polarity Teal/Rose, Semantic Error/Warning/Success/Info, near-black dark surfaces, relative luminance and contrast ratio helpers.
+- `PulseSpacing` (`lib/core/presentation/theme/pulse_spacing.dart`): 4px base increment (`xs = 4`, `sm = 8`, `md = 12`, `base = 16`, `lg = 24`, `xl = 32`, `xxl = 48`, `xxxl = 64`) with prebuilt `EdgeInsets` helpers.
+- `PulseMotion` (`lib/core/presentation/theme/pulse_motion.dart`): `defaultDuration` (300ms), `defaultCurve` (easeOut), `tapScaleDuration` (120ms), `tapScaleValue` (0.97).
+- `PulseTextStyles` (`lib/core/presentation/theme/pulse_text_styles.dart`): JetBrains Mono for financial metrics (`dataHero`, `financialValue`, `dataInline`, `financialLabel`, `dataSmall`) and Inter for UI copy (`display`, `bodyLarge`, `bodyMedium`, `bodySmall`, `labelLarge`, `labelMedium`, `labelSmall`).
+- `PulseBottomSheet` (`lib/core/presentation/widgets/pulse_bottom_sheet.dart`): Glassmorphic bottom sheet primitive with `BackdropFilter` (sigma 12), 24px top radius, drag handle, and static `show()` helper.
+- `PulseTapTarget` (`lib/core/presentation/widgets/pulse_tap_target.dart`): Interactive wrapper enforcing 48×48px minimum touch target, 0.97 scale animation, web hover glow, keyboard focus (Enter/Space), and semantic button annotations.
+- `PulseEmptyState` (`lib/core/presentation/widgets/pulse_empty_state.dart`): Minimalist line-art vector empty state for zero-data timelines and scenarios.
+- `PulseWebLayout` (`lib/core/presentation/widgets/pulse_web_layout.dart`): 1200px max width content centering with 768px responsive breakpoint.
+- `PulseNoiseOverlay` (`lib/core/presentation/widgets/pulse_noise_overlay.dart`): 3%–5% noise grain texture on dark surfaces to prevent OLED banding.
 
 ### Shared Failures
 <!-- Defined in lib/core/error/failure.dart — KEPT from scaffold: -->
