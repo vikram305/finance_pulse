@@ -42,16 +42,27 @@ class ProjectionEngine {
   ///
   /// Merges scenario events and active shock events into a single unified event list
   /// prior to node computation. Enforces that [windowMonths] is clamped within [1, 36].
+  /// Optional [initialBalance], [eventLookup], or [events] can be passed to override
+  /// instance-level fields (allowing [ProjectionEngine] to be reused as a stateless singleton).
   List<ProjectionNode> calculate(
     Scenario scenario,
     List<FinancialShock> activeShocks, {
     int windowMonths = AppConstants.defaultProjectionMonths,
+    double? initialBalance,
+    Map<String, FinancialEvent>? eventLookup,
+    List<FinancialEvent>? events,
   }) {
-    final effectiveWindow = windowMonths.clamp(1, AppConstants.maxProjectionMonths);
+    final effectiveWindow =
+        windowMonths.clamp(1, AppConstants.maxProjectionMonths);
 
-    // Resolve scenario events via eventLookup
+    final effectiveLookup = eventLookup ??
+        (events != null
+            ? {for (final event in events) event.id: event}
+            : this.eventLookup);
+
+    // Resolve scenario events via effectiveLookup
     final scenarioEvents = scenario.eventIds
-        .map((id) => eventLookup[id])
+        .map((id) => effectiveLookup[id])
         .whereType<FinancialEvent>()
         .toList(growable: false);
 
@@ -70,7 +81,7 @@ class ProjectionEngine {
     ];
 
     final nodes = <ProjectionNode>[];
-    var currentBalance = initialBalance;
+    var currentBalance = initialBalance ?? this.initialBalance;
 
     for (var m = 0; m < effectiveWindow; m++) {
       // Single unified filtering loop over the flattened event list

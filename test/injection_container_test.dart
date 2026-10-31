@@ -1,3 +1,4 @@
+import 'package:finance_pulse/domain/engine/projection_engine.dart';
 import 'package:finance_pulse/domain/usecases/calculate_resilience_score.dart';
 import 'package:finance_pulse/features/panic_room/presentation/bloc/panic_room_bloc.dart';
 import 'package:finance_pulse/features/sandbox/presentation/bloc/sandbox_bloc.dart';
@@ -21,6 +22,19 @@ void main() {
 
       expect(first, isA<CalculateResilienceScore>());
       expect(identical(first, second), isTrue);
+    });
+
+    test('resolves ProjectionEngine as lazy singleton', () {
+      final first = di.locator<ProjectionEngine>();
+      final second = di.locator<ProjectionEngine>();
+
+      expect(first, isA<ProjectionEngine>());
+      expect(identical(first, second), isTrue);
+    });
+
+    test('resolves ProjectionEngine through sl alias as well', () {
+      final engine = di.sl<ProjectionEngine>();
+      expect(engine, isA<ProjectionEngine>());
     });
 
     test('resolves SandboxBloc as factory (different instance each time)', () {
@@ -60,6 +74,34 @@ void main() {
       final bloc = di.sl<PanicRoomBloc>();
       expect(bloc, isA<PanicRoomBloc>());
       bloc.close();
+    });
+
+    group('Web platform guards (isWeb = true)', () {
+      setUp(() async {
+        await di.locator.reset();
+        await di.init(isWeb: true);
+      });
+
+      test('resolves SandboxBloc without error on web build', () {
+        final bloc = di.sl<SandboxBloc>();
+        expect(bloc, isA<SandboxBloc>());
+        bloc.close();
+      });
+
+      test('resolves ProjectionEngine without error on web build', () {
+        final engine = di.sl<ProjectionEngine>();
+        expect(engine, isA<ProjectionEngine>());
+      });
+
+      test(
+        'calling sl<PanicRoomBloc>() throws StateError on web build',
+        () {
+          expect(
+            () => di.sl<PanicRoomBloc>(),
+            throwsA(isA<StateError>()),
+          );
+        },
+      );
     });
   });
 }
