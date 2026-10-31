@@ -15,9 +15,10 @@ AI never loads this file — human references it and tells AI what's relevant.
 - PanicRoomBloc (TDD) — DONE (Issue 04: PanicRoomBloc, PanicRoomState, PanicRoomEvent, dynamic jobLoss construction, additive shock application without mutating Scenarios, survival months calculation, mobile-only !kIsWeb factory registration, 100% test coverage).
 - DI Container & Navigation Shell — DONE (Issue 05: GetIt wiring for ProjectionEngine, SandboxBloc, mobile-only PanicRoomBloc, GoRouter config with /onboarding, /sandbox, /panic-room routes and platform/scenario guards, MaterialApp.router integration, 100% test coverage).
 - Design System Foundation — DONE (Issue 06: PulseTheme dark/light Material 3 themes, ADR-DS-001 design tokens for PulseColors, PulseSpacing, PulseMotion, PulseTextStyles with Inter & JetBrains Mono, core presentation primitives PulseBottomSheet with glassmorphism, PulseEmptyState line-art, PulseTapTarget with 48x48 min bounds & hover glow, PulseWebLayout with 1200px max width and 768px breakpoint, PulseNoiseOverlay 3-5% OLED grain, 100% test coverage with WCAG AA contrast & 4 accessibility guidelines).
+- Onboarding Screen — DONE (Issue 07: 10-Second Hook /onboarding screen, liquid balance and monthly income inputs with JetBrains Mono numbers and ₹ prefix, inline validation, SandboxInitialized dispatch, SkeletonLoader shimmer, StrawmanNoticeCard dismissible notice, WebVolatileBanner session-dismissible warning on web, web Tab/Enter keyboard interactions, 100% test coverage).
 
 ### 🔄 In Progress
-<!-- Ready for next ticket: Issue 07 (Onboarding Screen) -->
+<!-- Ready for next ticket: Issue 08 (FinancialEvent CRUD & Modal Bottom Sheets) -->
 
 ### 📋 Planned
 - Sandbox (Onboarding + FinancialEvent CRUD + ProjectionEngine + TimelineChart)
@@ -71,6 +72,9 @@ Check this before Phase 2 to avoid duplicating contracts.
 - `PulseEmptyState` (`lib/core/presentation/widgets/pulse_empty_state.dart`): Minimalist line-art vector empty state for zero-data timelines and scenarios.
 - `PulseWebLayout` (`lib/core/presentation/widgets/pulse_web_layout.dart`): 1200px max width content centering with 768px responsive breakpoint.
 - `PulseNoiseOverlay` (`lib/core/presentation/widgets/pulse_noise_overlay.dart`): 3%–5% noise grain texture on dark surfaces to prevent OLED banding.
+- `SkeletonLoader` (`lib/core/presentation/widgets/skeleton_loader.dart`): Shimmer skeleton loader with gradient sweep (3 placeholder bars, 1500ms duration) representing active background scenario calculation.
+- `WebVolatileBanner` (`lib/features/onboarding/presentation/widgets/web_volatile_banner.dart`): Session-dismissible web warning banner with 300ms fade/slide exit animation for non-persistent browser storage.
+- `StrawmanNoticeCard` (`lib/features/sandbox/presentation/widgets/strawman_notice_card.dart`): Dismissible info card explaining auto-generated Strawman estimates with 300ms fade-out transition.
 
 ### Shared Failures
 <!-- Defined in lib/core/error/failure.dart — KEPT from scaffold: -->
@@ -98,6 +102,10 @@ Items logged during scaffold audit as breaking references or deliberate deferral
 | 9 | `pubspec.yaml` | `bloc_test` listed under `dependencies` instead of `dev_dependencies`. Move in audit Step 1. | 2026-10-17 |
 | 10 | `pubspec.yaml` | Missing: `drift`, `drift_flutter`, `sqlcipher_flutter_libs`, `sqlite3`, `path_provider`, `local_auth`, `flutter_secure_storage`, `cryptography`, `uuid`, `go_router`, `drift_dev`. Add in audit Step 1. | 2026-10-17 |
 | 11 | `pubspec.yaml` | Remove: `dio`, `internet_connection_checker_plus`, `cached_network_image`, `json_annotation`, `json_serializable`. All are network/HTTP concerns; Pulse is offline. Remove in audit Step 1. | 2026-10-17 |
+| 12 | `lib/features/onboarding/`, `lib/core/` | Hardcoded Numbers & Constants (Axis 2): Extracted `maxWidth: 1200` to `AppConstants.webMaxContentWidth`, added constants for `maxWidth: 520`, border width `1.5`, button height `52.0`, and shimmer duration `1500ms`. | ✅ Resolved (Issue 07) |
+| 13 | `lib/features/onboarding/`, `lib/features/sandbox/` | Theme Color Token Binding (Axis 2): Migrated manual `isDark ? PulseColors.darkX : PulseColors.lightX` evaluations to `Theme.of(context).colorScheme.<token>`. | ✅ Resolved (Issue 07) |
+| 14 | `lib/features/onboarding/`, `lib/features/sandbox/` | Accessibility Enhancements (Axis 4): Added error icon alongside error text for form field validation errors; added `liveRegion: true` announcements for `WebVolatileBanner` and `StrawmanNoticeCard`. | ✅ Resolved (Issue 07) |
+| 15 | `lib/features/` | Folder Structure Convention (Axis 1): Verified and adhered to repo convention (`presentation/screens/` and `presentation/widgets/`). | ✅ Documented (Issue 07) |
 
 ---
 

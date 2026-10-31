@@ -18,5 +18,13 @@ void main() {
       expect(AppConstants.minActiveScenarios, equals(1));
       expect(AppConstants.maxActiveScenarios, equals(2));
     });
+
+    test('UI and layout constants are configured correctly', () {
+      expect(AppConstants.webMaxContentWidth, equals(1200.0));
+      expect(AppConstants.onboardingFormMaxWidth, equals(520.0));
+      expect(AppConstants.inputBorderWidth, equals(1.5));
+      expect(AppConstants.primaryButtonHeight, equals(52.0));
+      expect(AppConstants.shimmerDuration, equals(const Duration(milliseconds: 1500)));
+    });
   });
 }

@@ -29,43 +29,16 @@ void main() {
   }) {
     return BlocProvider<SandboxBloc>.value(
       value: sandboxBloc,
-      child: MaterialApp.router(
-        theme: AppTheme().dark(),
-        routerConfig: router,
-      ),
+      child: MaterialApp.router(theme: AppTheme().dark(), routerConfig: router),
     );
   }
 
   group('AppRouter Navigation & Guards', () {
-    testWidgets('cold start defaults to /onboarding when no active scenario',
-        (tester) async {
+    testWidgets('cold start defaults to /onboarding when no active scenario', (
+      tester,
+    ) async {
       final sandboxBloc = SandboxBloc();
-      final router = createAppRouter(
-        sandboxBloc: sandboxBloc,
-        isWeb: false,
-      );
-
-      await tester.pumpWidget(
-        buildSubject(router: router, sandboxBloc: sandboxBloc),
-      );
-      await tester.pumpAndSettle();
-
-      expect(find.byType(OnboardingScreen), findsOneWidget);
-      expect(find.text(AppRoutes.onboarding), findsOneWidget);
-      expect(router.state.matchedLocation, AppRoutes.onboarding);
-
-      sandboxBloc.close();
-      router.dispose();
-    });
-
-    testWidgets('/onboarding route is always accessible directly without guards',
-        (tester) async {
-      final sandboxBloc = SandboxBloc();
-      final router = createAppRouter(
-        sandboxBloc: sandboxBloc,
-        isWeb: false,
-        initialLocation: AppRoutes.onboarding,
-      );
+      final router = createAppRouter(sandboxBloc: sandboxBloc, isWeb: false);
 
       await tester.pumpWidget(
         buildSubject(router: router, sandboxBloc: sandboxBloc),
@@ -80,201 +53,234 @@ void main() {
     });
 
     testWidgets(
-        'navigating to /sandbox without active scenario redirects to /onboarding',
-        (tester) async {
-      final sandboxBloc = SandboxBloc();
-      final router = createAppRouter(
-        sandboxBloc: sandboxBloc,
-        isWeb: false,
-        initialLocation: AppRoutes.onboarding,
-      );
+      '/onboarding route is always accessible directly without guards',
+      (tester) async {
+        final sandboxBloc = SandboxBloc();
+        final router = createAppRouter(
+          sandboxBloc: sandboxBloc,
+          isWeb: false,
+          initialLocation: AppRoutes.onboarding,
+        );
 
-      await tester.pumpWidget(
-        buildSubject(router: router, sandboxBloc: sandboxBloc),
-      );
-      await tester.pumpAndSettle();
+        await tester.pumpWidget(
+          buildSubject(router: router, sandboxBloc: sandboxBloc),
+        );
+        await tester.pumpAndSettle();
 
-      router.go(AppRoutes.sandbox);
-      await tester.pumpAndSettle();
+        expect(find.byType(OnboardingScreen), findsOneWidget);
+        expect(router.state.matchedLocation, AppRoutes.onboarding);
 
-      expect(find.byType(OnboardingScreen), findsOneWidget);
-      expect(find.byType(SandboxScreen), findsNothing);
-      expect(router.state.matchedLocation, AppRoutes.onboarding);
-
-      sandboxBloc.close();
-      router.dispose();
-    });
+        sandboxBloc.close();
+        router.dispose();
+      },
+    );
 
     testWidgets(
-        'after scenario is initialized, navigating to /sandbox stays at /sandbox',
-        (tester) async {
-      final sandboxBloc = SandboxBloc();
-      final router = createAppRouter(
-        sandboxBloc: sandboxBloc,
-        isWeb: false,
-        initialLocation: AppRoutes.onboarding,
-      );
+      'navigating to /sandbox without active scenario redirects to /onboarding',
+      (tester) async {
+        final sandboxBloc = SandboxBloc();
+        final router = createAppRouter(
+          sandboxBloc: sandboxBloc,
+          isWeb: false,
+          initialLocation: AppRoutes.onboarding,
+        );
 
-      await tester.pumpWidget(
-        buildSubject(router: router, sandboxBloc: sandboxBloc),
-      );
-      await tester.pumpAndSettle();
+        await tester.pumpWidget(
+          buildSubject(router: router, sandboxBloc: sandboxBloc),
+        );
+        await tester.pumpAndSettle();
 
-      sandboxBloc.add(
-        const SandboxInitialized(
-          liquidBalance: 100000,
-          monthlyNetIncome: 50000,
-        ),
-      );
-      await tester.pumpAndSettle();
+        router.go(AppRoutes.sandbox);
+        await tester.pumpAndSettle();
 
-      router.go(AppRoutes.sandbox);
-      await tester.pumpAndSettle();
+        expect(find.byType(OnboardingScreen), findsOneWidget);
+        expect(find.byType(SandboxScreen), findsNothing);
+        expect(router.state.matchedLocation, AppRoutes.onboarding);
 
-      expect(find.byType(SandboxScreen), findsOneWidget);
-      expect(find.text(AppRoutes.sandbox), findsOneWidget);
-      expect(router.state.matchedLocation, AppRoutes.sandbox);
-
-      sandboxBloc.close();
-      router.dispose();
-    });
+        sandboxBloc.close();
+        router.dispose();
+      },
+    );
 
     testWidgets(
-        'on a web build (kIsWeb = true), navigating to /panic-room produces a final route of /sandbox',
-        (tester) async {
-      final sandboxBloc = SandboxBloc();
-      sandboxBloc.add(
-        const SandboxInitialized(
-          liquidBalance: 100000,
-          monthlyNetIncome: 50000,
-        ),
-      );
+      'after scenario is initialized, navigating to /sandbox stays at /sandbox',
+      (tester) async {
+        final sandboxBloc = SandboxBloc();
+        final router = createAppRouter(
+          sandboxBloc: sandboxBloc,
+          isWeb: false,
+          initialLocation: AppRoutes.onboarding,
+        );
 
-      final router = createAppRouter(
-        sandboxBloc: sandboxBloc,
-        isWeb: true,
-        initialLocation: AppRoutes.sandbox,
-      );
+        await tester.pumpWidget(
+          buildSubject(router: router, sandboxBloc: sandboxBloc),
+        );
+        await tester.pumpAndSettle();
 
-      await tester.pumpWidget(
-        buildSubject(router: router, sandboxBloc: sandboxBloc),
-      );
-      await tester.pumpAndSettle();
+        sandboxBloc.add(
+          const SandboxInitialized(
+            liquidBalance: 100000,
+            monthlyNetIncome: 50000,
+          ),
+        );
+        await tester.pumpAndSettle();
 
-      router.go(AppRoutes.panicRoom);
-      await tester.pumpAndSettle();
+        router.go(AppRoutes.sandbox);
+        await tester.pumpAndSettle();
 
-      expect(find.byType(SandboxScreen), findsOneWidget);
-      expect(find.byType(PanicRoomScreen), findsNothing);
-      expect(router.state.matchedLocation, AppRoutes.sandbox);
+        expect(find.byType(SandboxScreen), findsOneWidget);
+        expect(find.text(AppRoutes.sandbox), findsOneWidget);
+        expect(router.state.matchedLocation, AppRoutes.sandbox);
 
-      sandboxBloc.close();
-      router.dispose();
-    });
-
-    testWidgets(
-        'on a web build without active scenario, navigating to /panic-room redirects through /sandbox to /onboarding',
-        (tester) async {
-      final sandboxBloc = SandboxBloc();
-      final router = createAppRouter(
-        sandboxBloc: sandboxBloc,
-        isWeb: true,
-        initialLocation: AppRoutes.onboarding,
-      );
-
-      await tester.pumpWidget(
-        buildSubject(router: router, sandboxBloc: sandboxBloc),
-      );
-      await tester.pumpAndSettle();
-
-      router.go(AppRoutes.panicRoom);
-      await tester.pumpAndSettle();
-
-      expect(find.byType(OnboardingScreen), findsOneWidget);
-      expect(find.byType(PanicRoomScreen), findsNothing);
-      expect(router.state.matchedLocation, AppRoutes.onboarding);
-
-      sandboxBloc.close();
-      router.dispose();
-    });
+        sandboxBloc.close();
+        router.dispose();
+      },
+    );
 
     testWidgets(
-        'on a mobile build (kIsWeb = false), navigating to /panic-room stays at /panic-room',
-        (tester) async {
-      final sandboxBloc = SandboxBloc();
-      final router = createAppRouter(
-        sandboxBloc: sandboxBloc,
-        isWeb: false,
-        initialLocation: AppRoutes.onboarding,
-      );
+      'on a web build (kIsWeb = true), navigating to /panic-room produces a final route of /sandbox',
+      (tester) async {
+        final sandboxBloc = SandboxBloc();
+        sandboxBloc.add(
+          const SandboxInitialized(
+            liquidBalance: 100000,
+            monthlyNetIncome: 50000,
+          ),
+        );
 
-      await tester.pumpWidget(
-        buildSubject(router: router, sandboxBloc: sandboxBloc),
-      );
-      await tester.pumpAndSettle();
+        final router = createAppRouter(
+          sandboxBloc: sandboxBloc,
+          isWeb: true,
+          initialLocation: AppRoutes.sandbox,
+        );
 
-      router.go(AppRoutes.panicRoom);
-      await tester.pumpAndSettle();
+        await tester.pumpWidget(
+          buildSubject(router: router, sandboxBloc: sandboxBloc),
+        );
+        await tester.pumpAndSettle();
 
-      expect(find.byType(PanicRoomScreen), findsOneWidget);
-      expect(find.text(AppRoutes.panicRoom), findsOneWidget);
-      expect(router.state.matchedLocation, AppRoutes.panicRoom);
+        router.go(AppRoutes.panicRoom);
+        await tester.pumpAndSettle();
 
-      sandboxBloc.close();
-      router.dispose();
-    });
+        expect(find.byType(SandboxScreen), findsOneWidget);
+        expect(find.byType(PanicRoomScreen), findsNothing);
+        expect(router.state.matchedLocation, AppRoutes.sandbox);
+
+        sandboxBloc.close();
+        router.dispose();
+      },
+    );
 
     testWidgets(
-        'scoped BlocProvider provides PanicRoomBloc exclusively at /panic-room route on mobile',
-        (tester) async {
-      final sandboxBloc = SandboxBloc();
-      final router = createAppRouter(
-        sandboxBloc: sandboxBloc,
-        isWeb: false,
-        initialLocation: AppRoutes.onboarding,
-      );
+      'on a web build without active scenario, navigating to /panic-room redirects through /sandbox to /onboarding',
+      (tester) async {
+        final sandboxBloc = SandboxBloc();
+        final router = createAppRouter(
+          sandboxBloc: sandboxBloc,
+          isWeb: true,
+          initialLocation: AppRoutes.onboarding,
+        );
 
-      await tester.pumpWidget(
-        buildSubject(router: router, sandboxBloc: sandboxBloc),
-      );
-      await tester.pumpAndSettle();
+        await tester.pumpWidget(
+          buildSubject(router: router, sandboxBloc: sandboxBloc),
+        );
+        await tester.pumpAndSettle();
 
-      router.go(AppRoutes.panicRoom);
-      await tester.pumpAndSettle();
+        router.go(AppRoutes.panicRoom);
+        await tester.pumpAndSettle();
 
-      final panicRoomScreenContext =
-          tester.element(find.byType(PanicRoomScreen));
-      final panicRoomBloc =
-          BlocProvider.of<PanicRoomBloc>(panicRoomScreenContext);
-      expect(panicRoomBloc, isA<PanicRoomBloc>());
+        expect(find.byType(OnboardingScreen), findsOneWidget);
+        expect(find.byType(PanicRoomScreen), findsNothing);
+        expect(router.state.matchedLocation, AppRoutes.onboarding);
 
-      sandboxBloc.close();
-      router.dispose();
-    });
+        sandboxBloc.close();
+        router.dispose();
+      },
+    );
 
-    testWidgets('ValueNotifier notifies router when SandboxBloc state updates',
-        (tester) async {
-      final sandboxBloc = SandboxBloc();
-      final notifier = SandboxListenableNotifier(sandboxBloc);
-      var notificationCount = 0;
-      notifier.addListener(() {
-        notificationCount++;
-      });
+    testWidgets(
+      'on a mobile build (kIsWeb = false), navigating to /panic-room stays at /panic-room',
+      (tester) async {
+        final sandboxBloc = SandboxBloc();
+        final router = createAppRouter(
+          sandboxBloc: sandboxBloc,
+          isWeb: false,
+          initialLocation: AppRoutes.onboarding,
+        );
 
-      sandboxBloc.add(
-        const SandboxInitialized(
-          liquidBalance: 50000,
-          monthlyNetIncome: 25000,
-        ),
-      );
-      await tester.pumpAndSettle();
+        await tester.pumpWidget(
+          buildSubject(router: router, sandboxBloc: sandboxBloc),
+        );
+        await tester.pumpAndSettle();
 
-      expect(notificationCount, greaterThan(0));
-      expect(notifier.value.scenarios.isNotEmpty, isTrue);
+        router.go(AppRoutes.panicRoom);
+        await tester.pumpAndSettle();
 
-      notifier.dispose();
-      sandboxBloc.close();
-    });
+        expect(find.byType(PanicRoomScreen), findsOneWidget);
+        expect(find.text(AppRoutes.panicRoom), findsOneWidget);
+        expect(router.state.matchedLocation, AppRoutes.panicRoom);
+
+        sandboxBloc.close();
+        router.dispose();
+      },
+    );
+
+    testWidgets(
+      'scoped BlocProvider provides PanicRoomBloc exclusively at /panic-room route on mobile',
+      (tester) async {
+        final sandboxBloc = SandboxBloc();
+        final router = createAppRouter(
+          sandboxBloc: sandboxBloc,
+          isWeb: false,
+          initialLocation: AppRoutes.onboarding,
+        );
+
+        await tester.pumpWidget(
+          buildSubject(router: router, sandboxBloc: sandboxBloc),
+        );
+        await tester.pumpAndSettle();
+
+        router.go(AppRoutes.panicRoom);
+        await tester.pumpAndSettle();
+
+        final panicRoomScreenContext = tester.element(
+          find.byType(PanicRoomScreen),
+        );
+        final panicRoomBloc = BlocProvider.of<PanicRoomBloc>(
+          panicRoomScreenContext,
+        );
+        expect(panicRoomBloc, isA<PanicRoomBloc>());
+
+        sandboxBloc.close();
+        router.dispose();
+      },
+    );
+
+    testWidgets(
+      'ValueNotifier notifies router when SandboxBloc state updates',
+      (tester) async {
+        final sandboxBloc = SandboxBloc();
+        final notifier = SandboxListenableNotifier(sandboxBloc);
+        var notificationCount = 0;
+        notifier.addListener(() {
+          notificationCount++;
+        });
+
+        sandboxBloc.add(
+          const SandboxInitialized(
+            liquidBalance: 50000,
+            monthlyNetIncome: 25000,
+          ),
+        );
+        await tester.pumpAndSettle();
+
+        expect(notificationCount, greaterThan(0));
+        expect(notifier.value.scenarios.isNotEmpty, isTrue);
+
+        notifier.dispose();
+        sandboxBloc.close();
+      },
+    );
   });
 
   group('appRouterRedirect unit tests', () {

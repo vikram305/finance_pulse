@@ -13,6 +13,7 @@ import '../../features/sandbox/presentation/bloc/sandbox_state.dart';
 import '../../features/sandbox/presentation/screens/sandbox_screen.dart';
 import '../../injection_container.dart' as di;
 import '../constants/app_routes.dart';
+import '../presentation/theme/pulse_motion.dart';
 
 export '../constants/app_routes.dart';
 
@@ -64,6 +65,14 @@ String? appRouterRedirect(
     }
   }
 
+  // Onboarding completion guard: once Scenario exists, onboarding is complete (ADR-007)
+  if (location == AppRoutes.onboarding) {
+    final hasActiveScenario = sandboxBloc.state.scenarios.isNotEmpty;
+    if (hasActiveScenario) {
+      return AppRoutes.sandbox;
+    }
+  }
+
   return null;
 }
 
@@ -101,12 +110,25 @@ GoRouter createAppRouter({
       GoRoute(
         path: AppRoutes.onboarding,
         name: AppRoutes.onboardingName,
-        builder: (context, state) => const OnboardingScreen(),
+        builder: (context, state) => OnboardingScreen(isWeb: isWeb),
       ),
       GoRoute(
         path: AppRoutes.sandbox,
         name: AppRoutes.sandboxName,
-        builder: (context, state) => const SandboxScreen(),
+        pageBuilder: (context, state) => CustomTransitionPage<void>(
+          key: state.pageKey,
+          child: const SandboxScreen(),
+          transitionDuration: PulseMotion.defaultDuration,
+          transitionsBuilder: (context, animation, secondaryAnimation, child) {
+            return FadeTransition(
+              opacity: CurvedAnimation(
+                parent: animation,
+                curve: PulseMotion.defaultCurve,
+              ),
+              child: child,
+            );
+          },
+        ),
       ),
       GoRoute(
         path: AppRoutes.panicRoom,
