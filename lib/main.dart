@@ -4,7 +4,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
 
 import 'core/constants/app_strings.dart';
-import 'core/presentation/theme/app_theme.dart';
+import 'core/presentation/theme/pulse_theme.dart';
 import 'core/router/app_router.dart';
 import 'features/sandbox/presentation/bloc/sandbox_bloc.dart';
 import 'injection_container.dart' as di;
@@ -25,12 +25,14 @@ class PulseApp extends StatefulWidget {
   final SandboxBloc? sandboxBloc;
   final GoRouter? router;
   final bool? isWeb;
+  final ThemeMode? themeMode;
 
   const PulseApp({
     super.key,
     this.sandboxBloc,
     this.router,
     this.isWeb,
+    this.themeMode,
   });
 
   @override
@@ -83,7 +85,9 @@ class _PulseAppState extends State<PulseApp> {
       value: _sandboxBloc,
       child: MaterialApp.router(
         title: AppStrings.appTitle,
-        theme: AppTheme().dark(),
+        theme: PulseTheme.light(),
+        darkTheme: PulseTheme.dark(),
+        themeMode: widget.themeMode ?? ThemeMode.system,
         routerConfig: _router,
       ),
     );
