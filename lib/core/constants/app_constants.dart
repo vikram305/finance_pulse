@@ -5,12 +5,19 @@ class AppConstants {
   // Projection engine
   static const int defaultProjectionMonths = 12;
   static const int minProjectionMonths = 12;
+  static const int intermediateProjectionMonths = 24;
   static const int maxProjectionMonths = 36;
+  static const List<int> allowedProjectionWindows = [
+    minProjectionMonths,
+    intermediateProjectionMonths,
+    maxProjectionMonths,
+  ];
 
   // Resilience score ceiling (ADR-009)
   static const int resilienceRunwayCeilingMonths = 12;
 
-  // Scenario cap (ADR-008)
+  // Scenario limits (ADR-008)
+  static const int minActiveScenarios = 1;
   static const int maxActiveScenarios = 2;
 
   // Onboarding — 50/30/20 Strawman percentages
