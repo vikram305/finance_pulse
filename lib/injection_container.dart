@@ -1,8 +1,10 @@
 import 'package:get_it/get_it.dart';
 
 import 'domain/usecases/calculate_resilience_score.dart';
+import 'features/sandbox/presentation/bloc/sandbox_bloc.dart';
 
 final locator = GetIt.instance;
+final sl = locator;
 
 /// Registers all app-level dependencies.
 ///
@@ -18,14 +20,17 @@ Future<void> init() async {
   // (add DateHelper, etc. when first feature needs them)
 
   // — Domain UseCases —
-  locator.registerLazySingleton<CalculateResilienceScore>(
-    () => const CalculateResilienceScore(),
-  );
+  if (!locator.isRegistered<CalculateResilienceScore>()) {
+    locator.registerLazySingleton<CalculateResilienceScore>(
+      () => const CalculateResilienceScore(),
+    );
+  }
 
   // — Feature: Sandbox —
-  // locator.registerFactory(() => SandboxBloc(locator()));
+  if (!locator.isRegistered<SandboxBloc>()) {
+    locator.registerFactory<SandboxBloc>(() => SandboxBloc());
+  }
 
   // — Feature: Panic Room —
   // locator.registerFactory(() => PanicRoomBloc(locator()));
 }
-

@@ -11,9 +11,10 @@ AI never loads this file — human references it and tells AI what's relevant.
 ### ✅ Completed
 - Scaffold audit & cleanup — DONE (Issue 01: weather artefacts removed, pubspec dependencies updated for Drift/cryptography, CI passing for tests, analyze, apk, and web).
 - Domain Entities & Projection Engine — DONE (Issue 02: pure Dart entities FinancialEvent, Scenario, ProjectionNode, ResilienceScore, FinancialShock, predefined shock catalogue, ProjectionEngine O(N×M) calculation engine, CalculateResilienceScore use case, 100% test coverage).
+- SandboxBloc (TDD) — DONE (Issue 03: SandboxBloc, SandboxState, SandboxEvent, Strawman generation on init, Event CRUD, A/B Scenario operations with deep-copy & 2-scenario cap, projection recalculation on every state change, GetIt factory registration, 100% test coverage).
 
 ### 🔄 In Progress
-<!-- Ready for next ticket: Issue 03 (SandboxBloc TDD) -->
+<!-- Ready for next ticket: Issue 04 (PanicRoomBloc TDD) -->
 
 ### 📋 Planned
 - Sandbox (Onboarding + FinancialEvent CRUD + ProjectionEngine + TimelineChart)
@@ -36,9 +37,8 @@ Check this before Phase 2 to avoid duplicating contracts.
 - `ResilienceScore` (`lib/domain/entities/resilience_score.dart`): scenarioId, score (0–100) derived from runway months against a 12-month ceiling.
 
 ### BLoCs
-<!-- None provided at app level yet. -->
+- `SandboxBloc` (`lib/features/sandbox/presentation/bloc/sandbox_bloc.dart`): Central state machine managing active Scenarios, FinancialEvents per Scenario, and real-time ProjectionEngine recalculations. Registered as a factory in GetIt.
 <!-- Planned (provided at MaterialApp root):
-- SandboxBloc — manages Scenario map + ProjectionNode calculation
 - PanicRoomBloc — manages FinancialShock activation across all Scenarios (mobile-only)
 -->
 
@@ -51,11 +51,11 @@ Check this before Phase 2 to avoid duplicating contracts.
 
 ### DI Keys
 - `CalculateResilienceScore` (lazy singleton) — pure domain resilience score evaluation usecase.
+- `SandboxBloc` (factory) — feature state machine for Scenarios & projection recalculation.
 <!-- Planned registrations (injection_container.dart):
 - DatabaseService (singleton)
 - FinancialEventRepository (lazy singleton)
 - ScenarioRepository (lazy singleton)
-- SandboxBloc (factory)
 - PanicRoomBloc (factory, !kIsWeb guard)
 -->
 
