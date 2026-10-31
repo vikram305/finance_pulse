@@ -1,4 +1,3 @@
-import 'package:finance_pulse/core/constants/app_routes.dart';
 import 'package:finance_pulse/core/presentation/theme/pulse_colors.dart';
 import 'package:finance_pulse/features/onboarding/presentation/screens/onboarding_screen.dart';
 import 'package:finance_pulse/injection_container.dart' as di;
@@ -17,17 +16,18 @@ void main() {
   });
 
   testWidgets(
-      'PulseApp launches and displays onboarding placeholder on cold start',
-      (WidgetTester tester) async {
-    await tester.pumpWidget(const PulseApp());
-    await tester.pumpAndSettle();
+    'PulseApp launches and displays onboarding screen on cold start',
+    (WidgetTester tester) async {
+      await tester.pumpWidget(const PulseApp());
+      await tester.pumpAndSettle();
 
-    expect(find.byType(OnboardingScreen), findsOneWidget);
-    expect(find.text(AppRoutes.onboarding), findsOneWidget);
-  });
+      expect(find.byType(OnboardingScreen), findsOneWidget);
+    },
+  );
 
-  testWidgets('PulseApp renders dark theme by default when system is dark',
-      (WidgetTester tester) async {
+  testWidgets('PulseApp renders dark theme by default when system is dark', (
+    WidgetTester tester,
+  ) async {
     tester.platformDispatcher.platformBrightnessTestValue = Brightness.dark;
     addTearDown(tester.platformDispatcher.clearPlatformBrightnessTestValue);
 
@@ -44,25 +44,29 @@ void main() {
     expect(materialApp.darkTheme?.brightness, equals(Brightness.dark));
   });
 
-  testWidgets('PulseApp switches to light theme when system is light without contrast failure',
-      (WidgetTester tester) async {
-    tester.platformDispatcher.platformBrightnessTestValue = Brightness.light;
-    addTearDown(tester.platformDispatcher.clearPlatformBrightnessTestValue);
+  testWidgets(
+    'PulseApp switches to light theme when system is light without contrast failure',
+    (WidgetTester tester) async {
+      tester.platformDispatcher.platformBrightnessTestValue = Brightness.light;
+      addTearDown(tester.platformDispatcher.clearPlatformBrightnessTestValue);
 
-    await tester.pumpWidget(const PulseApp());
-    await tester.pumpAndSettle();
+      await tester.pumpWidget(const PulseApp());
+      await tester.pumpAndSettle();
 
-    final BuildContext context = tester.element(find.byType(OnboardingScreen));
-    final theme = Theme.of(context);
+      final BuildContext context = tester.element(
+        find.byType(OnboardingScreen),
+      );
+      final theme = Theme.of(context);
 
-    expect(theme.brightness, equals(Brightness.light));
-    expect(theme.colorScheme.primary, equals(PulseColors.lightPrimary));
+      expect(theme.brightness, equals(Brightness.light));
+      expect(theme.colorScheme.primary, equals(PulseColors.lightPrimary));
 
-    // Verify contrast ratio >= 4.5:1
-    final contrast = PulseColors.contrastRatio(
-      theme.colorScheme.primary,
-      theme.scaffoldBackgroundColor,
-    );
-    expect(contrast, greaterThanOrEqualTo(4.5));
-  });
+      // Verify contrast ratio >= 4.5:1
+      final contrast = PulseColors.contrastRatio(
+        theme.colorScheme.primary,
+        theme.scaffoldBackgroundColor,
+      );
+      expect(contrast, greaterThanOrEqualTo(4.5));
+    },
+  );
 }

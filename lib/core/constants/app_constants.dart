@@ -35,6 +35,12 @@ class AppConstants {
   static const double webMaxContentWidth = 1200.0;
   static const double webMobileBreakpoint = 768.0;
 
+  // UI & Onboarding layout
+  static const double onboardingFormMaxWidth = 520.0;
+  static const double inputBorderWidth = 1.5;
+  static const double primaryButtonHeight = 52.0;
+  static const Duration shimmerDuration = Duration(milliseconds: 1500);
+
   // Mobile chart layout
   static const double mobileChartHeightFraction = 0.60;
 
