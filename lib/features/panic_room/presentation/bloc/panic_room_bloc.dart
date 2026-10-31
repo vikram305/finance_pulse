@@ -141,17 +141,14 @@ class PanicRoomBloc extends Bloc<PanicRoomEvent, PanicRoomState> {
 
     for (final scenario in scenarios.values) {
       final scenarioEvents = eventsByScenarioId[scenario.id] ?? const [];
-      final engine =
-          _engine ??
-          ProjectionEngine.withEvents(
-            initialBalance: liquidBalance,
-            events: scenarioEvents,
-          );
+      final engine = _engine ?? const ProjectionEngine();
 
       final nodes = engine.calculate(
         scenario,
         activeShocks,
         windowMonths: windowMonths,
+        initialBalance: liquidBalance,
+        events: scenarioEvents,
       );
       projections[scenario.id] = nodes;
 

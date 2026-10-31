@@ -420,15 +420,13 @@ class SandboxBloc extends Bloc<SandboxEvent, SandboxState> {
     final result = <String, List<ProjectionNode>>{};
     for (final scenario in scenarios.values) {
       final scenarioEvents = eventsByScenarioId[scenario.id] ?? const [];
-      final engine = _engine ??
-          ProjectionEngine.withEvents(
-            initialBalance: liquidBalance,
-            events: scenarioEvents,
-          );
+      final engine = _engine ?? const ProjectionEngine();
       result[scenario.id] = engine.calculate(
         scenario,
         const [],
         windowMonths: windowMonths,
+        initialBalance: liquidBalance,
+        events: scenarioEvents,
       );
     }
     return result;
