@@ -1,4 +1,5 @@
 import 'package:finance_pulse/domain/usecases/calculate_resilience_score.dart';
+import 'package:finance_pulse/features/panic_room/presentation/bloc/panic_room_bloc.dart';
 import 'package:finance_pulse/features/sandbox/presentation/bloc/sandbox_bloc.dart';
 import 'package:finance_pulse/injection_container.dart' as di;
 import 'package:flutter_test/flutter_test.dart';
@@ -39,6 +40,26 @@ void main() {
       expect(bloc, isA<SandboxBloc>());
       bloc.close();
     });
+
+    test(
+      'resolves PanicRoomBloc as factory when !kIsWeb (different instance each time)',
+      () {
+        final first = di.locator<PanicRoomBloc>();
+        final second = di.locator<PanicRoomBloc>();
+
+        expect(first, isA<PanicRoomBloc>());
+        expect(second, isA<PanicRoomBloc>());
+        expect(identical(first, second), isFalse);
+
+        first.close();
+        second.close();
+      },
+    );
+
+    test('resolves PanicRoomBloc through sl alias as well', () {
+      final bloc = di.sl<PanicRoomBloc>();
+      expect(bloc, isA<PanicRoomBloc>());
+      bloc.close();
+    });
   });
 }
-

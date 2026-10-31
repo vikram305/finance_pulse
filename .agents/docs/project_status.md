@@ -12,9 +12,10 @@ AI never loads this file — human references it and tells AI what's relevant.
 - Scaffold audit & cleanup — DONE (Issue 01: weather artefacts removed, pubspec dependencies updated for Drift/cryptography, CI passing for tests, analyze, apk, and web).
 - Domain Entities & Projection Engine — DONE (Issue 02: pure Dart entities FinancialEvent, Scenario, ProjectionNode, ResilienceScore, FinancialShock, predefined shock catalogue, ProjectionEngine O(N×M) calculation engine, CalculateResilienceScore use case, 100% test coverage).
 - SandboxBloc (TDD) — DONE (Issue 03: SandboxBloc, SandboxState, SandboxEvent, Strawman generation on init, Event CRUD, A/B Scenario operations with deep-copy & 2-scenario cap, projection recalculation on every state change, GetIt factory registration, 100% test coverage).
+- PanicRoomBloc (TDD) — DONE (Issue 04: PanicRoomBloc, PanicRoomState, PanicRoomEvent, dynamic jobLoss construction, additive shock application without mutating Scenarios, survival months calculation, mobile-only !kIsWeb factory registration, 100% test coverage).
 
 ### 🔄 In Progress
-<!-- Ready for next ticket: Issue 04 (PanicRoomBloc TDD) -->
+<!-- Ready for next ticket: Issue 05 (DI Container & Navigation Shell) -->
 
 ### 📋 Planned
 - Sandbox (Onboarding + FinancialEvent CRUD + ProjectionEngine + TimelineChart)
@@ -38,9 +39,7 @@ Check this before Phase 2 to avoid duplicating contracts.
 
 ### BLoCs
 - `SandboxBloc` (`lib/features/sandbox/presentation/bloc/sandbox_bloc.dart`): Central state machine managing active Scenarios, FinancialEvents per Scenario, and real-time ProjectionEngine recalculations. Registered as a factory in GetIt.
-<!-- Planned (provided at MaterialApp root):
-- PanicRoomBloc — manages FinancialShock activation across all Scenarios (mobile-only)
--->
+- `PanicRoomBloc` (`lib/features/panic_room/presentation/bloc/panic_room_bloc.dart`): Central state machine for Panic Room stress-testing, active shock management, and resilience score/survival runway calculation (mobile-only, guarded by `!kIsWeb`). Registered as a factory in GetIt.
 
 ### Routes
 <!-- GoRouter not yet wired. Planned routes:
@@ -52,11 +51,11 @@ Check this before Phase 2 to avoid duplicating contracts.
 ### DI Keys
 - `CalculateResilienceScore` (lazy singleton) — pure domain resilience score evaluation usecase.
 - `SandboxBloc` (factory) — feature state machine for Scenarios & projection recalculation.
+- `PanicRoomBloc` (factory, `!kIsWeb` guard) — stress-test state machine for FinancialShocks and resilience metrics.
 <!-- Planned registrations (injection_container.dart):
 - DatabaseService (singleton)
 - FinancialEventRepository (lazy singleton)
 - ScenarioRepository (lazy singleton)
-- PanicRoomBloc (factory, !kIsWeb guard)
 -->
 
 ### Shared Failures
