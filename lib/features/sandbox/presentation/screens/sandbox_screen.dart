@@ -1,13 +1,16 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
+import '../../../../core/constants/app_constants.dart';
 import '../../../../core/constants/app_routes.dart';
 import '../../../../core/presentation/theme/pulse_colors.dart';
 import '../../../../core/presentation/theme/pulse_spacing.dart';
+import '../../../../core/presentation/widgets/pulse_web_layout.dart';
 import '../../../../core/presentation/widgets/skeleton_loader.dart';
 import '../bloc/sandbox_bloc.dart';
 import '../bloc/sandbox_state.dart';
 import '../widgets/strawman_notice_card.dart';
+import '../widgets/trajectory_chart.dart';
 
 /// Sandbox screen (/sandbox) representing the primary scenario visualization & editing canvas.
 ///
@@ -37,46 +40,65 @@ class _SandboxScreenState extends State<SandboxScreen> {
       child: Scaffold(
         backgroundColor: backgroundColor,
         body: SafeArea(
-          child: BlocBuilder<SandboxBloc, SandboxState>(
-            builder: (context, state) {
-              final hasProjections =
-                  state.projectionsByScenarioId.isNotEmpty &&
-                  state.projectionsByScenarioId.values.any(
-                    (nodes) => nodes.isNotEmpty,
-                  );
+          child: PulseWebLayout(
+            child: BlocBuilder<SandboxBloc, SandboxState>(
+              builder: (context, state) {
+                final hasProjections =
+                    state.projectionsByScenarioId.isNotEmpty &&
+                    state.projectionsByScenarioId.values.any(
+                      (nodes) => nodes.isNotEmpty,
+                    );
 
-              return Padding(
-                padding: const EdgeInsets.all(PulseSpacing.base),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.stretch,
-                  children: [
-                    if (!hasProjections)
-                      const Padding(
-                        padding: EdgeInsets.symmetric(
-                          vertical: PulseSpacing.base,
+                return Padding(
+                  padding: const EdgeInsets.all(PulseSpacing.base),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.stretch,
+                    children: [
+                      if (!hasProjections)
+                        const Padding(
+                          padding: EdgeInsets.symmetric(
+                            vertical: PulseSpacing.base,
+                          ),
+                          child: SkeletonLoader(),
+                        )
+                      else ...[
+                        if (!_noticeDismissed)
+                          Padding(
+                            padding: const EdgeInsets.only(
+                              bottom: PulseSpacing.base,
+                            ),
+                            child: StrawmanNoticeCard(
+                              onDismissed: () {
+                                setState(() {
+                                  _noticeDismissed = true;
+                                });
+                              },
+                            ),
+                          ),
+                        SizedBox(
+                          height: MediaQuery.sizeOf(context).height *
+                              AppConstants.mobileChartHeightFraction,
+                          child: TrajectoryChart(
+                            projectionsByScenarioId:
+                                state.projectionsByScenarioId,
+                            windowMonths: state.projectionWindowMonths,
+                            initialBalance: state.liquidBalance,
+                            scenarioNames: {
+                              for (final entry in state.scenarios.entries)
+                                entry.key: entry.value.name,
+                            },
+                          ),
                         ),
-                        child: SkeletonLoader(),
-                      )
-                    else if (!_noticeDismissed)
-                      Padding(
-                        padding: const EdgeInsets.only(
-                          bottom: PulseSpacing.base,
-                        ),
-                        child: StrawmanNoticeCard(
-                          onDismissed: () {
-                            setState(() {
-                              _noticeDismissed = true;
-                            });
-                          },
-                        ),
+                        const SizedBox(height: PulseSpacing.base),
+                      ],
+                      const Expanded(
+                        child: Center(child: Text(AppRoutes.sandbox)),
                       ),
-                    const Expanded(
-                      child: Center(child: Text(AppRoutes.sandbox)),
-                    ),
-                  ],
-                ),
-              );
-            },
+                    ],
+                  ),
+                );
+              },
+            ),
           ),
         ),
       ),
