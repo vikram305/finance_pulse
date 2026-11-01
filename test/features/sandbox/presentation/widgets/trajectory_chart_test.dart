@@ -187,6 +187,27 @@ void main() {
       await tester.pumpAndSettle();
     });
 
+    testWidgets('provides descriptive Semantics label for screen readers', (
+      tester,
+    ) async {
+      final nodes = createMockNodes(
+        count: 12,
+        startBalance: 100000,
+        netFlow: 15000,
+      );
+      await tester.pumpWidget(
+        buildSubject(projectionsByScenarioId: {'scenario_a': nodes}),
+      );
+      await tester.pumpAndSettle();
+
+      expect(
+        find.bySemanticsLabel(
+          'Financial trajectory projection chart showing 1 scenario over a 12-month horizon',
+        ),
+        findsOneWidget,
+      );
+    });
+
     testWidgets('meets accessibility guidelines', (tester) async {
       final nodes = createMockNodes(
         count: 12,

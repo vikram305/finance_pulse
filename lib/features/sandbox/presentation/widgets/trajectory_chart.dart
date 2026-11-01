@@ -117,6 +117,11 @@ class _TrajectoryChartState extends State<TrajectoryChart> {
     return LayoutBuilder(
       builder: (context, constraints) {
         final isHeightBounded = constraints.maxHeight.isFinite;
+        final scenarioCount = widget.projectionsByScenarioId?.keys.length ?? 0;
+        final scenarioText =
+            scenarioCount == 1 ? '1 scenario' : '$scenarioCount scenarios';
+        final semanticsLabel =
+            'Financial trajectory projection chart showing $scenarioText over a $_selectedMonths-month horizon';
 
         final chartCanvas = AnimatedSwitcher(
           duration: PulseMotion.defaultDuration,
@@ -125,17 +130,21 @@ class _TrajectoryChartState extends State<TrajectoryChart> {
           transitionBuilder: (child, animation) {
             return FadeTransition(opacity: animation, child: child);
           },
-          child: RepaintBoundary(
+          child: Semantics(
             key: ValueKey<int>(_selectedMonths),
-            child: CustomPaint(
-              size: Size.infinite,
-              painter: TrajectoryPainter(
-                projectionsByScenarioId: widget.projectionsByScenarioId!,
-                scenarioColours: effectiveColours,
-                scenarioNames: widget.scenarioNames,
-                windowMonths: _selectedMonths,
-                initialBalance: widget.initialBalance,
-                isDark: isDark,
+            label: semanticsLabel,
+            child: RepaintBoundary(
+              child: CustomPaint(
+                size: Size.infinite,
+                painter: TrajectoryPainter(
+                  projectionsByScenarioId: widget.projectionsByScenarioId!,
+                  scenarioColours: effectiveColours,
+                  scenarioNames: widget.scenarioNames,
+                  windowMonths: _selectedMonths,
+                  initialBalance: widget.initialBalance,
+                  isDark: isDark,
+                  gridLineColor: Theme.of(context).colorScheme.outlineVariant,
+                ),
               ),
             ),
           ),

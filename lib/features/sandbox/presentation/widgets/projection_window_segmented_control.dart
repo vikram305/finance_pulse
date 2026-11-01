@@ -53,51 +53,70 @@ class ProjectionWindowSegmentedControl extends StatelessWidget {
         child: Row(
           mainAxisSize: MainAxisSize.min,
           children: availableWindows
-              .map((months) {
-                final isSelected = months == selectedMonths;
-                final label = '${months}M';
-
-                return PulseTapTarget(
-                  minWidth: 48.0,
-                  minHeight: 48.0,
-                  semanticLabel: '$label projection window',
-                  borderRadius: BorderRadius.circular(PulseSpacing.xs),
-                  onTap: () {
-                    if (!isSelected) {
-                      onChanged(months);
-                    }
-                  },
-                  child: AnimatedContainer(
-                    key: Key('segment_container_$months'),
-                    duration: PulseMotion.defaultDuration,
-                    curve: PulseMotion.defaultCurve,
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: PulseSpacing.md,
-                      vertical: PulseSpacing.xs,
-                    ),
-                    decoration: BoxDecoration(
-                      color: isSelected
-                          ? PulseColors.primary
-                          : Colors.transparent,
-                      borderRadius: BorderRadius.circular(PulseSpacing.xs),
-                    ),
-                    child: Text(
-                      label,
-                      style: PulseTextStyles.dataSmall.copyWith(
-                        fontWeight: isSelected
-                            ? FontWeight.w600
-                            : FontWeight.w500,
-                        color: isSelected
-                            ? Theme.of(context).colorScheme.onPrimary
-                            : (isDark
-                                  ? PulseColors.darkOnSurfaceVariant
-                                  : PulseColors.lightOnSurfaceVariant),
-                      ),
-                    ),
-                  ),
-                );
-              })
+              .map(
+                (months) => _SegmentButton(
+                  months: months,
+                  isSelected: months == selectedMonths,
+                  isDark: isDark,
+                  onChanged: onChanged,
+                ),
+              )
               .toList(growable: false),
+        ),
+      ),
+    );
+  }
+}
+
+class _SegmentButton extends StatelessWidget {
+  final int months;
+  final bool isSelected;
+  final bool isDark;
+  final ValueChanged<int> onChanged;
+
+  const _SegmentButton({
+    required this.months,
+    required this.isSelected,
+    required this.isDark,
+    required this.onChanged,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final label = '${months}M';
+
+    return PulseTapTarget(
+      minWidth: 48.0,
+      minHeight: 48.0,
+      semanticLabel: '$label projection window',
+      borderRadius: BorderRadius.circular(PulseSpacing.xs),
+      onTap: () {
+        if (!isSelected) {
+          onChanged(months);
+        }
+      },
+      child: AnimatedContainer(
+        key: Key('segment_container_$months'),
+        duration: PulseMotion.defaultDuration,
+        curve: PulseMotion.defaultCurve,
+        padding: const EdgeInsets.symmetric(
+          horizontal: PulseSpacing.md,
+          vertical: PulseSpacing.xs,
+        ),
+        decoration: BoxDecoration(
+          color: isSelected ? PulseColors.primary : Colors.transparent,
+          borderRadius: BorderRadius.circular(PulseSpacing.xs),
+        ),
+        child: Text(
+          label,
+          style: PulseTextStyles.dataSmall.copyWith(
+            fontWeight: isSelected ? FontWeight.w600 : FontWeight.w500,
+            color: isSelected
+                ? Theme.of(context).colorScheme.onPrimary
+                : (isDark
+                      ? PulseColors.darkOnSurfaceVariant
+                      : PulseColors.lightOnSurfaceVariant),
+          ),
         ),
       ),
     );

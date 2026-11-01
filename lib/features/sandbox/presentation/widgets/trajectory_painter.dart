@@ -70,6 +70,9 @@ class TrajectoryPainter extends CustomPainter {
   /// Whether current theme is dark.
   final bool isDark;
 
+  /// Optional color for horizontal grid lines (e.g. [ColorScheme.outlineVariant]).
+  final Color? gridLineColor;
+
   const TrajectoryPainter({
     required this.projectionsByScenarioId,
     required this.scenarioColours,
@@ -77,6 +80,7 @@ class TrajectoryPainter extends CustomPainter {
     required this.windowMonths,
     required this.initialBalance,
     required this.isDark,
+    this.gridLineColor,
   });
 
   @override
@@ -296,12 +300,13 @@ class TrajectoryPainter extends CustomPainter {
     final textColor = isDark
         ? PulseColors.darkOnSurfaceVariant
         : PulseColors.lightOnSurfaceVariant;
-    final gridLineColor = isDark
-        ? Colors.white.withValues(alpha: 0.05)
-        : Colors.black.withValues(alpha: 0.05);
+    final effectiveGridLineColor = gridLineColor ??
+        (isDark
+            ? PulseColors.darkOutline.withValues(alpha: 0.25)
+            : PulseColors.lightOutline.withValues(alpha: 0.4));
 
     final gridPaint = Paint()
-      ..color = gridLineColor
+      ..color = effectiveGridLineColor
       ..strokeWidth = 1.0;
 
     const int tickCount = 4;
@@ -481,6 +486,7 @@ class TrajectoryPainter extends CustomPainter {
     if (oldDelegate.windowMonths != windowMonths ||
         oldDelegate.initialBalance != initialBalance ||
         oldDelegate.isDark != isDark ||
+        oldDelegate.gridLineColor != gridLineColor ||
         !mapEquals(oldDelegate.scenarioColours, scenarioColours) ||
         !mapEquals(oldDelegate.scenarioNames, scenarioNames)) {
       return true;

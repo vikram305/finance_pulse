@@ -109,9 +109,9 @@ Items logged during scaffold audit as breaking references or deliberate deferral
 | 13 | `lib/features/onboarding/`, `lib/features/sandbox/` | Theme Color Token Binding (Axis 2): Migrated manual `isDark ? PulseColors.darkX : PulseColors.lightX` evaluations to `Theme.of(context).colorScheme.<token>`. | ✅ Resolved (Issue 07) |
 | 14 | `lib/features/onboarding/`, `lib/features/sandbox/` | Accessibility Enhancements (Axis 4): Added error icon alongside error text for form field validation errors; added `liveRegion: true` announcements for `WebVolatileBanner` and `StrawmanNoticeCard`. | ✅ Resolved (Issue 07) |
 | 15 | `lib/features/` | Folder Structure Convention (Axis 1): Verified and adhered to repo convention (`presentation/screens/` and `presentation/widgets/`). | ✅ Documented (Issue 07) |
-| 16 | `lib/features/sandbox/presentation/widgets/projection_window_segmented_control.dart` | Extract `_SegmentButton`: Break down `build()` in `projection_window_segmented_control.dart` to bring the method under ~50 lines. | Open (Issue 08) |
-| 17 | `lib/features/sandbox/presentation/widgets/trajectory_painter.dart` | Canvas Theme Tokens: In `trajectory_painter.dart`, replace `Colors.white`/`Colors.black` on grid lines with `colorScheme.outlineVariant`. | Open (Issue 08) |
-| 18 | `lib/features/sandbox/presentation/widgets/trajectory_chart.dart` | Canvas Screen Reader Semantics: In `trajectory_chart.dart`, wrap the chart canvas with a descriptive `Semantics(label: ...)` widget for TalkBack / VoiceOver users. | Open (Issue 08) |
+| 16 | `lib/features/sandbox/presentation/widgets/projection_window_segmented_control.dart` | Extract `_SegmentButton`: Break down `build()` in `projection_window_segmented_control.dart` to bring the method under ~50 lines. | ✅ Resolved (Issue 08) |
+| 17 | `lib/features/sandbox/presentation/widgets/trajectory_painter.dart` | Canvas Theme Tokens: In `trajectory_painter.dart`, replace `Colors.white`/`Colors.black` on grid lines with `colorScheme.outlineVariant`. | ✅ Resolved (Issue 08) |
+| 18 | `lib/features/sandbox/presentation/widgets/trajectory_chart.dart` | Canvas Screen Reader Semantics: In `trajectory_chart.dart`, wrap the chart canvas with a descriptive `Semantics(label: ...)` widget for TalkBack / VoiceOver users. | ✅ Resolved (Issue 08) |
 
 ---
 

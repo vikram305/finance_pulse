@@ -31,6 +31,7 @@ abstract final class PulseTheme {
       surfaceContainerHighest: PulseColors.darkSurfaceContainer,
       onSurfaceVariant: PulseColors.darkOnSurfaceVariant,
       outline: PulseColors.darkOutline,
+      outlineVariant: PulseColors.darkOutline,
     );
 
     final baseTextTheme = ThemeData.dark().textTheme;
@@ -108,6 +109,7 @@ abstract final class PulseTheme {
       surfaceContainerHighest: PulseColors.lightSurfaceContainer,
       onSurfaceVariant: PulseColors.lightOnSurfaceVariant,
       outline: PulseColors.lightOutline,
+      outlineVariant: PulseColors.lightOutline,
     );
 
     final baseTextTheme = ThemeData.light().textTheme;
