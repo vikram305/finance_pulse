@@ -16,9 +16,10 @@ AI never loads this file — human references it and tells AI what's relevant.
 - DI Container & Navigation Shell — DONE (Issue 05: GetIt wiring for ProjectionEngine, SandboxBloc, mobile-only PanicRoomBloc, GoRouter config with /onboarding, /sandbox, /panic-room routes and platform/scenario guards, MaterialApp.router integration, 100% test coverage).
 - Design System Foundation — DONE (Issue 06: PulseTheme dark/light Material 3 themes, ADR-DS-001 design tokens for PulseColors, PulseSpacing, PulseMotion, PulseTextStyles with Inter & JetBrains Mono, core presentation primitives PulseBottomSheet with glassmorphism, PulseEmptyState line-art, PulseTapTarget with 48x48 min bounds & hover glow, PulseWebLayout with 1200px max width and 768px breakpoint, PulseNoiseOverlay 3-5% OLED grain, 100% test coverage with WCAG AA contrast & 4 accessibility guidelines).
 - Onboarding Screen — DONE (Issue 07: 10-Second Hook /onboarding screen, liquid balance and monthly income inputs with JetBrains Mono numbers and ₹ prefix, inline validation, SandboxInitialized dispatch, SkeletonLoader shimmer, StrawmanNoticeCard dismissible notice, WebVolatileBanner session-dismissible warning on web, web Tab/Enter keyboard interactions, 100% test coverage).
+- TrajectoryChart (Custom Bézier Painter) — DONE (Issue 08: TrajectoryChart custom CustomPainter with cubic Bézier curve smoothing inside RepaintBoundary, 1 or 2 simultaneous trajectories, auto-scaled Y-axis with compact Indian currency labels, 12M/24M/36M ProjectionWindowSegmentedControl, floating in-canvas legend, survival floor ₹0 line with Rose distress dip, 100% test coverage with 4 accessibility guidelines).
 
 ### 🔄 In Progress
-<!-- Ready for next ticket: Issue 08 (FinancialEvent CRUD & Modal Bottom Sheets) -->
+<!-- Ready for next ticket: Issue 09 (FinancialEvent CRUD & Modal Bottom Sheets) -->
 
 ### 📋 Planned
 - Sandbox (Onboarding + FinancialEvent CRUD + ProjectionEngine + TimelineChart)
@@ -75,6 +76,8 @@ Check this before Phase 2 to avoid duplicating contracts.
 - `SkeletonLoader` (`lib/core/presentation/widgets/skeleton_loader.dart`): Shimmer skeleton loader with gradient sweep (3 placeholder bars, 1500ms duration) representing active background scenario calculation.
 - `WebVolatileBanner` (`lib/features/onboarding/presentation/widgets/web_volatile_banner.dart`): Session-dismissible web warning banner with 300ms fade/slide exit animation for non-persistent browser storage.
 - `StrawmanNoticeCard` (`lib/features/sandbox/presentation/widgets/strawman_notice_card.dart`): Dismissible info card explaining auto-generated Strawman estimates with 300ms fade-out transition.
+- `TrajectoryChart` (`lib/features/sandbox/presentation/widgets/trajectory_chart.dart`): Pure CustomPainter-based Bézier projection chart with RepaintBoundary isolation, 12M/24M/36M AnimatedSwitcher window transitions, and PulseEmptyState zero-data fallback.
+- `ProjectionWindowSegmentedControl` (`lib/features/sandbox/presentation/widgets/projection_window_segmented_control.dart`): 12M | 24M | 36M horizon selector with 48×48px PulseTapTarget bounds and Deep Indigo active state.
 
 ### Shared Failures
 <!-- Defined in lib/core/error/failure.dart — KEPT from scaffold: -->
@@ -106,6 +109,9 @@ Items logged during scaffold audit as breaking references or deliberate deferral
 | 13 | `lib/features/onboarding/`, `lib/features/sandbox/` | Theme Color Token Binding (Axis 2): Migrated manual `isDark ? PulseColors.darkX : PulseColors.lightX` evaluations to `Theme.of(context).colorScheme.<token>`. | ✅ Resolved (Issue 07) |
 | 14 | `lib/features/onboarding/`, `lib/features/sandbox/` | Accessibility Enhancements (Axis 4): Added error icon alongside error text for form field validation errors; added `liveRegion: true` announcements for `WebVolatileBanner` and `StrawmanNoticeCard`. | ✅ Resolved (Issue 07) |
 | 15 | `lib/features/` | Folder Structure Convention (Axis 1): Verified and adhered to repo convention (`presentation/screens/` and `presentation/widgets/`). | ✅ Documented (Issue 07) |
+| 16 | `lib/features/sandbox/presentation/widgets/projection_window_segmented_control.dart` | Extract `_SegmentButton`: Break down `build()` in `projection_window_segmented_control.dart` to bring the method under ~50 lines. | ✅ Resolved (Issue 08) |
+| 17 | `lib/features/sandbox/presentation/widgets/trajectory_painter.dart` | Canvas Theme Tokens: In `trajectory_painter.dart`, replace `Colors.white`/`Colors.black` on grid lines with `colorScheme.outlineVariant`. | ✅ Resolved (Issue 08) |
+| 18 | `lib/features/sandbox/presentation/widgets/trajectory_chart.dart` | Canvas Screen Reader Semantics: In `trajectory_chart.dart`, wrap the chart canvas with a descriptive `Semantics(label: ...)` widget for TalkBack / VoiceOver users. | ✅ Resolved (Issue 08) |
 
 ---
 

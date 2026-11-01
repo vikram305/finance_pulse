@@ -8,6 +8,10 @@ void main() {
       expect(SandboxStrings.livingCosts, equals('Living Costs'));
       expect(SandboxStrings.emi, equals('EMI'));
       expect(SandboxStrings.defaultScenarioName, equals('Scenario A'));
+      expect(
+        SandboxStrings.emptyTrajectoryMessage,
+        equals('Add your first event to see your trajectory.'),
+      );
     });
 
     test('scenarioCopy formats name with (Copy) suffix', () {

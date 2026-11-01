@@ -6,6 +6,7 @@ import 'package:finance_pulse/features/sandbox/presentation/bloc/sandbox_bloc.da
 import 'package:finance_pulse/features/sandbox/presentation/bloc/sandbox_event.dart';
 import 'package:finance_pulse/features/sandbox/presentation/screens/sandbox_screen.dart';
 import 'package:finance_pulse/features/sandbox/presentation/widgets/strawman_notice_card.dart';
+import 'package:finance_pulse/features/sandbox/presentation/widgets/trajectory_chart.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -61,6 +62,7 @@ void main() {
 
         expect(find.byType(StrawmanNoticeCard), findsOneWidget);
         expect(find.text(AppStrings.strawmanNotice), findsOneWidget);
+        expect(find.byType(TrajectoryChart), findsOneWidget);
         expect(find.byType(SkeletonLoader), findsNothing);
       },
     );
@@ -92,6 +94,28 @@ void main() {
       final popScope = tester.widget<PopScope>(find.byType(PopScope));
       expect(popScope.canPop, isFalse);
     });
+
+    testWidgets(
+      'confirms raw exception messages or text are never rendered in widget tree',
+      (tester) async {
+        await tester.pumpWidget(buildSubject());
+        await tester.pumpAndSettle();
+
+        expect(find.textContaining('Exception'), findsNothing);
+        expect(find.textContaining('Error:'), findsNothing);
+
+        sandboxBloc.add(
+          const SandboxInitialized(
+            liquidBalance: 100000,
+            monthlyNetIncome: 50000,
+          ),
+        );
+        await tester.pumpAndSettle();
+
+        expect(find.textContaining('Exception'), findsNothing);
+        expect(find.textContaining('Error:'), findsNothing);
+      },
+    );
 
     group('Accessibility Guidelines', () {
       testWidgets('meets androidTapTargetGuideline', (tester) async {
